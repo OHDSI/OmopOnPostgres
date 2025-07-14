@@ -24,8 +24,8 @@ expectedIndexes.pq_cdm <- function(cdm, name) {
   # convert back the cdm object
   class(cdm) <- "cdm_reference"
 
-  # table classes
-  expected <- omopgenerics::cdmClasses(cdm = cdm) |>
+  # table indexes
+  omopgenerics::cdmClasses(cdm = cdm) |>
     purrr::map(\(x) dplyr::tibble(table_name = x)) |>
     dplyr::bind_rows(.id = "table_class") |>
     dplyr::filter(.data$table_name %in% .env$name) |>
@@ -34,9 +34,25 @@ expectedIndexes.pq_cdm <- function(cdm, name) {
     purrr::map(\(x) {
       cl <- unique(x$table_class)
       if (cl == "omop_table") {
-        res <- 2
+        res <- x |>
+          dplyr::inner_join(
+            expectedIdx$omop_table |>
+              dplyr::select("table_name", "expected_index"),
+            by = "table_name"
+          )
       } else if (cl == "cohort_table") {
-        res <- 1
+        res <- x |>
+          dplyr::cross_join(
+            expectedIdx$cohort_table |>
+              dplyr::select("table_name", "expected_index")
+          )
+      } else if (cl == "achilles_table") {
+        res <- x |>
+          dplyr::inner_join(
+            expectedIdx$achilles_table |>
+              dplyr::select("table_name", "expected_index"),
+            by = "table_name"
+          )
       } else {
         res <- dplyr::tibble(
           table_class = character(),
@@ -47,9 +63,6 @@ expectedIndexes.pq_cdm <- function(cdm, name) {
       return(res)
     }) |>
     dplyr::bind_rows()
-
-
-
 }
 
 #' @export
@@ -83,7 +96,7 @@ existingIndexes.pq_cdm <- function(cdm, name) {
 
   # order result
   indexes <- indexes |>
-    dplyr::inner_join(classes, by = "table_name") |>
+    dplyr::inner_join(classes, by = "table_name")
 
   # return
   return(indexes)
@@ -112,107 +125,6 @@ createTableIndex.pq_cdm <- function(table, index) {
   invisible(res)
 }
 
-existingCdmIndexes <- function(cdm) {
-  # initial check
-  omopgenerics::validateCdmArgument(cdm = cdm)
-
-  # get src
-  src <- omopgenerics::cdmSource(cdm)
-  con <- getCon(src)
-  x <- cdmTableClasses(cdm = cdm)
-
-  # get cdm_schema indexes
-  schema <- getSchema(src, "cdm")
-  nms <- paste0(getPrefix(src, "cdm"), x$omop_tables)
-  idx_cdm <- getIndexes(con = con, schema = schema, table = nms)
-
-  # get write_schema indexes
-  schema <- getSchema(src, "write")
-  nms <- paste0(getPrefix(src, "write"), c(x$cohort_tables, x$other_tables))
-  idx_write <- getIndexes(con = con, schema = schema, table = nms)
-
-  # get achilles_schema indexes
-  schema <- getSchema(src, "achilles")
-  nms <- paste0(getPrefix(src, "write"), x$achilles_tables)
-  idx_achilles <- getIndexes(con = con, schema = schema, table = nms)
-
-  dplyr::bind_rows(idx_cdm, idx_write, idx_achilles)
-}
-existingTableIndexes <- function(table) {
-  omopgenerics::validateCdmTable(table = table)
-  rnm <- dbplyr::remote_name(table)
-
-  # check table is not a query
-  if (is.null(rnm)) {
-    cli::cli_inform(c("!" = "Table is query and not a reference to a table."))
-    return(emptyIndexesMatrix())
-  }
-
-  # check is not temp table
-  if (is.na(omopgenerics::tableName(table))) {
-    cli::cli_inform(c("!" = "Temp tables do not have indexes."))
-    return(emptyIndexesMatrix())
-  }
-
-  src <- omopgenerics::cdmSource(table)
-  con <- getCon(src)
-  if (stringr::str_detect(string = rnm, pattern = "\\.")) {
-    rnm <- stringr::str_split_1(string = rnm, pattern = "\\.")
-    schema <- rnm[1]
-    name <- rnm[2]
-  } else {
-    schema <- DBI::dbGetQuery(con, "SELECT current_schema();")$current_schema
-    name <- rnm
-  }
-  return(getIndexes(con = con, schema = schema, table = name))
-}
-existingIndexes <- function(x, schema = NULL, tableName = NULL) {
-  # input check
-  if (inherits(x, "cdm_reference") | inherits(x, "cdm_table")) {
-    x <- omopgenerics::cdmSource(x)
-  }
-  if (inherits(x, "pq_cdm")) {
-    x <- getCon(x)
-  }
-  if (!inherits(x, "PqConnection")) {
-    cli::cli_abort(c(x = "{.cls PqConnection} not found."))
-  }
-  con <- assertCon(x)
-  omopgenerics::assertCharacter(schema, null = TRUE)
-  omopgenerics::assertCharacter(tableName, null = TRUE)
-
-  # get indexes
-  getIndexes(con = con, schema = schema, table = tableName)
-}
-expectedCdmIndexes <- function(cdm) {
-  # input check
-  cdm <- omopgenerics::validateCdmArgument(cdm = cdm)
-
-  x <- cdmTableClasses(cdm = cdm)
-
-  expectedIndex(tableName = x$omop_tables, tableClass = "omop_table")
-}
-expectedIndex <- function(tableName = NULL, tableClass, columns = NULL) {
-  expIdx <- expectedIdx |>
-    dplyr::filter(.data$table_class %in% .env$tableClass)
-  if (tableClass %in% c("omop_table", "achilles_table")) {
-    expIdx <- expIdx |>
-      dplyr::filter(.data$index_table == .env$tableName)
-  } else if (tableClass == "cohort_table") {
-
-  } else if (tableClass == "other_table") {
-
-  }
-  expIdx |>
-    dplyr::select("index_name", "index_table", "index_column" = "index")
-}
-emptyIndexesMatrix <- function() {
-  c("schemaname", "tablename", "indexname", "tablespace", "indexdef", "index") |>
-    rlang::set_names() |>
-    as.list() |>
-    dplyr::as_tibble() |>
-    utils::head(0)
-}
 
 getSchemaAndTables <- function(cdm, name) {
   name |>

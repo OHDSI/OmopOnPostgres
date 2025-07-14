@@ -5,34 +5,26 @@ cdmIndexes <- readLines("https://raw.githubusercontent.com/OHDSI/CommonDataModel
   purrr::map(\(x) {
     dplyr::tibble(
       index_name = stringr::str_match(x, "CREATE INDEX ([^ ]+)")[,2],
-      index_table = stringr::str_match(x, "\\.([^ ]+)")[,2],
-      index = stringr::str_match(x, "\\(([^)]+)\\)")[,2]
+      table_name = stringr::str_match(x, "\\.([^ ]+)")[,2],
+      expected_index = stringr::str_match(x, "\\(([^)]+)\\)")[,2]
     )
   }) |>
-  dplyr::bind_rows() |>
-  dplyr::mutate(index_schema = "cdm", table_class = "omop_table")
+  dplyr::bind_rows()
 
-cohortIndexes <- dplyr::tribble(
-  ~index_name, ~index_table, ~index_schema, ~index, ~table_class,
-  "{index_table}_cdi_si_csd", "-", "write", "cohort_definition_id, subject_id, cohort_start_date", "cohort_table"
+cohortIndexes <- dplyr::tibble(
+  expected_index = "cohort_definition_id, subject_id, cohort_start_date"
 )
 
 achillesIndexes <- dplyr::tribble(
-  ~index_name, ~index_table, ~index_schema, ~index, ~table_class,
-  "idx_achilles_results_analysis_id", "achilles_results", "achilles", "analysis_id", "achilles_table",
-  "idx_achilles_results_dist_analysis_id", "achilles_results_dist", "achilles", "analysis_id", "achilles_table"
+  ~table_name, ~expected_index,
+  "achilles_results", "analysis_id",
+  "achilles_results_dist", "analysis_id"
 )
 
-otherIndexes <- dplyr::tribble(
-  ~index_name, ~index_table, ~index_schema, ~index, ~table_class,
-  "{index_table}_subject_id", "-", "write", "subject_id", "other_table",
-  "{index_table}_person_id", "-", "write", "person_id", "other_table",
-  "{index_table}_<prefix>_concept_id", "-", "write", "<prefix>_concept_id", "other_table"
+expectedIdx <- list(
+  omop_table = cdmIndexes,
+  cohort_table = cohortIndexes,
+  achilles_table = achillesIndexes
 )
-
-expectedIdx <- cdmIndexes |>
-  dplyr::union_all(cohortIndexes) |>
-  dplyr::union_all(achillesIndexes) |>
-  dplyr::union_all(otherIndexes)
 
 usethis::use_data(expectedIdx, internal = TRUE, overwrite = TRUE)
