@@ -1,47 +1,117 @@
 
-#' Create the cdm
-#'
-#' @inheritParams cdmDoc
-#'
-#' @return The cdm object.
+#' @importFrom omopgenerics expectedIndexes
 #' @export
-#'
-createCdmIndexes <- function(cdm) {
+omopgenerics::expectedIndexes
+
+#' @importFrom omopgenerics existingIndexes
+#' @export
+omopgenerics::existingIndexes
+
+#' @importFrom omopgenerics statusIndexes
+#' @export
+omopgenerics::statusIndexes
+
+#' @importFrom omopgenerics createIndexes
+#' @export
+omopgenerics::createIndexes
+
+#' @importFrom omopgenerics createTableIndex
+#' @export
+omopgenerics::createTableIndex
+
+#' @export
+expectedIndexes.pq_cdm <- function(cdm, name) {
+  # convert back the cdm object
+  class(cdm) <- "cdm_reference"
+
+  # table classes
+  expected <- omopgenerics::cdmClasses(cdm = cdm) |>
+    purrr::map(\(x) dplyr::tibble(table_name = x)) |>
+    dplyr::bind_rows(.id = "table_class") |>
+    dplyr::filter(.data$table_name %in% .env$name) |>
+    dplyr::group_by(.data$table_class) |>
+    dplyr::group_split() |>
+    purrr::map(\(x) {
+      cl <- unique(x$table_class)
+      if (cl == "omop_table") {
+        res <- 2
+      } else if (cl == "cohort_table") {
+        res <- 1
+      } else {
+        res <- dplyr::tibble(
+          table_class = character(),
+          table_name = character(),
+          expected_index = character()
+        )
+      }
+      return(res)
+    }) |>
+    dplyr::bind_rows()
+
+
 
 }
 
-#' Title
-#'
-#' @inheritParams tableDoc
-#'
-#' @return The same <cdm_table> object.
 #' @export
-#'
-createTableIndexes <- function(table) {
+existingIndexes.pq_cdm <- function(cdm, name) {
+  # convert back the cdm object
+  class(cdm) <- "cdm_reference"
 
+  # get schema and table names
+  x <- getSchemaAndTables(cdm = cdm, name = name)
+
+  # insert table
+  nm <- omopgenerics::uniqueTableName()
+  cdm <- omopgenerics::insertTable(cdm = cdm, name = nm, table = x)
+
+  # filter data
+  indexes <- dplyr::tbl(con, I("pg_indexes")) |>
+    dplyr::inner_join(cdm[[nm]], by = c("schemaname", "tablename")) |>
+    dplyr::collect() |>
+    dplyr::mutate(index = stringr::str_extract(
+      string = .data$indexdef, pattern = "(?<=\\()[^)]*(?=\\))"
+    )) |>
+    dplyr::select("table_name" = "tablename", "index")
+
+  # drop table
+  omopgenerics::dropSourceTable(cdm = cdm, name = nm)
+
+  # table classes
+  classes <- omopgenerics::cdmClasses(cdm = cdm) |>
+    purrr::map(\(x) dplyr::tibble(table_name = x)) |>
+    dplyr::bind_rows(.id = "table_class")
+
+  # order result
+  indexes <- indexes |>
+    dplyr::inner_join(classes, by = "table_name") |>
+
+  # return
+  return(indexes)
 }
 
-#' Title
-#'
-#' @param x A PqConnection, cdm_reference, cdm_table or pq_cdm object.
-#' @param schema schema
-#' @param tableName tableName
-#' @param index index to create
-#'
-#' @return The same x object.
 #' @export
-#'
-createIndexes <- function(x, schema, tableName, index) {
+createTableIndex.pq_cdm <- function(table, index) {
+  # get attributes
+  con <- dbplyr::remote_con(x = table)
+  nm <- dbplyr::remote_name(x = table$lazy_query) |>
+    as.character() |>
+    stringr::str_split_1(pattern = "\\.")
+  schema <- nm[1]
+  table <- nm[2]
 
+  # create index if it does not exist
+  if (indexExists(con, schema, table, index)) {
+    cli::cli_inform(c("!" = "Index already existing so no new index added."))
+    res <- FALSE
+  } else {
+    st <- paste0("CREATE INDEX ON ", schema, ".", table, " (", index, ")")
+    DBI::dbExecute(conn = con, statement = st)
+    res <- TRUE
+  }
+
+  invisible(res)
 }
 
-#' Identify the existing indexes in the tables of a <cdm_reference> object.
-#'
-#' @inheritParams cdmDoc
-#'
-#' @return A tibble object with the existing indexes.
-#' @export
-#'
 existingCdmIndexes <- function(cdm) {
   # initial check
   omopgenerics::validateCdmArgument(cdm = cdm)
@@ -68,14 +138,6 @@ existingCdmIndexes <- function(cdm) {
 
   dplyr::bind_rows(idx_cdm, idx_write, idx_achilles)
 }
-
-#' Title
-#'
-#' @inheritParams tableDoc
-#'
-#' @return A tibble object with the existing indexes.
-#' @export
-#'
 existingTableIndexes <- function(table) {
   omopgenerics::validateCdmTable(table = table)
   rnm <- dbplyr::remote_name(table)
@@ -104,16 +166,6 @@ existingTableIndexes <- function(table) {
   }
   return(getIndexes(con = con, schema = schema, table = name))
 }
-
-#' Retrieve the indexes that exist in database.
-#'
-#' @param x A PqConnection, cdm_reference, cdm_table or pq_cdm object.
-#' @param schema schema
-#' @param tableName tableName
-#'
-#' @return A tibble object with the existing indexes.
-#' @export
-#'
 existingIndexes <- function(x, schema = NULL, tableName = NULL) {
   # input check
   if (inherits(x, "cdm_reference") | inherits(x, "cdm_table")) {
@@ -132,34 +184,6 @@ existingIndexes <- function(x, schema = NULL, tableName = NULL) {
   # get indexes
   getIndexes(con = con, schema = schema, table = tableName)
 }
-
-#' Create the cdm
-#'
-#' @inheritParams cdmDoc
-#'
-#' @return The cdm object.
-#' @export
-#'
-checkCdmIndexes <- function(cdm) {
-  # initial checks
-  cdm <- omopgenerics::validateCdmArgument(cdm = cdm)
-
-  # get existing indexes
-  src <- omopgenerics::cdmSource(x = cdm)
-  con <- getCon(src =)
-  idx <- getIndexes(con = con, schema = schema, table = tableName)
-
-
-}
-
-checkTableIndexes <- function(table) {
-
-}
-
-checkIndexes <- function(x, schema = NULL, tableName = NULL) {
-
-}
-
 expectedCdmIndexes <- function(cdm) {
   # input check
   cdm <- omopgenerics::validateCdmArgument(cdm = cdm)
@@ -168,15 +192,6 @@ expectedCdmIndexes <- function(cdm) {
 
   expectedIndex(tableName = x$omop_tables, tableClass = "omop_table")
 }
-
-expectedTableIndexes <- function(table) {
-
-}
-
-expectedIndexes <- function(x, schema, tableName) {
-
-}
-
 expectedIndex <- function(tableName = NULL, tableClass, columns = NULL) {
   expIdx <- expectedIdx |>
     dplyr::filter(.data$table_class %in% .env$tableClass)
@@ -198,15 +213,23 @@ emptyIndexesMatrix <- function() {
     dplyr::as_tibble() |>
     utils::head(0)
 }
-createIndex <- function(con, schema, table, index) {
-  if (indexExists(con, schema, table, index)) {
-    cli::cli_inform("Index already existing so no new index added.")
-  } else {
-    cli::cli_inform("Adding indexes to table")
-    st <- paste0("CREATE INDEX ON ", schema, ".", table, " (", index, ")")
-    DBI::dbExecute(conn = con, statement = st)
-  }
-  invisible(con)
+
+getSchemaAndTables <- function(cdm, name) {
+  name |>
+    purrr::map(\(nm) {
+      rnm <- as.character(dbplyr::remote_name(cdm[[nm]]$lazy_query))
+      if (is.na(rnm)) {
+        cli::cli_inform(c("!" = "cdm[['{nm}']] is a query and will be ignored."))
+        x <- dplyr::tibble(schemaname = character(), tablename = character())
+      } else {
+        x <- stringr::str_split_1(string = rnm, pattern = "\\.") |>
+          rlang::set_names(nm = c("schemaname", "tablename")) |>
+          as.list() |>
+          dplyr::as_tibble()
+      }
+      x
+    }) |>
+    dplyr::bind_rows()
 }
 getIndexes <- function(con, schema = NULL, table = NULL) {
   x <- dplyr::tbl(con, I("pg_indexes"))
