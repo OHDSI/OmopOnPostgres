@@ -1,4 +1,4 @@
-url: https://oxford-pharmacoepi.github.io/OmopPostgresConnector/
+url: https://ohdsi.github.io/OmopOnPostgres/
 template:
   bootstrap: 5
 
@@ -26,11 +26,10 @@ reference:
     desc: "Create and check existing indexes."
     contents:
       - createIndexes
-      - createTableIndexes
-      - createCdmIndexes
       - existingIndexes
-      - existingTableIndexes
-      - existingCdmIndexes
+      - expectedIndexes
+      - statusIndexes
+      - createTableIndex
 
   - title: "Create a postgres source object"
     contents:

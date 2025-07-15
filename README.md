@@ -1,23 +1,23 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# OmopPostgresConnector
+# OmopOnPostgres
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/oxford-pharmacoepi/OmopPostgresConnector/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/oxford-pharmacoepi/OmopPostgresConnector/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/ohdsi/OmopOnPostgres/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ohdsi/OmopOnPostgres/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The goal of OmopPostgresConnector is to …
+The goal of OmopOnPostgres is to …
 
 ## Installation
 
-You can install the development version of OmopPostgresConnector from
+You can install the development version of OmopOnPostgres from
 [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("oxford-pharmacoepi/OmopPostgresConnector")
+devtools::install_github("ohdsi/OmopOnPostgres")
 ```
 
 ## Example
@@ -25,7 +25,7 @@ devtools::install_github("oxford-pharmacoepi/OmopPostgresConnector")
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
-library(OmopPostgresConnector)
+library(OmopOnPostgres)
 ## basic example code
 ```
 

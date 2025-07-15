@@ -41,7 +41,7 @@ Copy a cdm (independently of its source) to a
 }
 \examples{
 #library(omock)
-#library(OmopPostgresConnector)
+#library(OmopOnPostgres)
 #
 #pq <- localPostgres()
 #cdm <- mockCdmFromDataset(datasetName = "GiBleed")

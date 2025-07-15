@@ -178,7 +178,7 @@ startLogger <- function(jobName, jobType, sql, explain, callFrom = jobType) {
     elapsed_seconds = NA_integer_,
     call_function = tb,
     trace_back = ftb,
-    source_type = "OmopPostgresConnector",
+    source_type = "OmopOnPostgres",
     sql = sql,
     explain = explain
   ) |>
@@ -229,33 +229,33 @@ extractAnalyse <- function(src, sql) {
   analyse
 }
 logIdCounter <- function() {
-  id <- getOption("OmopPostgresConnector.log_id", 1L)
-  options(OmopPostgresConnector.log_id = id + 1L)
+  id <- getOption("OmopOnPostgres.log_id", 1L)
+  options(OmopOnPostgres.log_id = id + 1L)
   return(id)
 }
 getLogPath <- function() {
-  getOption("OmopPostgresConnector.log_path", "")
+  getOption("OmopOnPostgres.log_path", "")
 }
 setLogPath <- function(x) {
-  options(OmopPostgresConnector.log_path = x)
+  options(OmopOnPostgres.log_path = x)
 }
 getLogSql <- function() {
-  getOption("OmopPostgresConnector.log_sql", FALSE)
+  getOption("OmopOnPostgres.log_sql", FALSE)
 }
 setLogSql <- function(x) {
-  options(OmopPostgresConnector.log_sql = x)
+  options(OmopOnPostgres.log_sql = x)
 }
 getLogExplain <- function() {
-  getOption("OmopPostgresConnector.log_explain", FALSE)
+  getOption("OmopOnPostgres.log_explain", FALSE)
 }
 setLogExplain <- function(x) {
-  options(OmopPostgresConnector.log_explain = x)
+  options(OmopOnPostgres.log_explain = x)
 }
 getLogAnalyse <- function() {
-  getOption("OmopPostgresConnector.log_analyse", FALSE)
+  getOption("OmopOnPostgres.log_analyse", FALSE)
 }
 setLogAnalyse <- function(x) {
-  options(OmopPostgresConnector.log_analyse = x)
+  options(OmopOnPostgres.log_analyse = x)
 }
 getCallFunction <- function(traceBack, jobType) {
   out <- tryCatch({
@@ -294,7 +294,7 @@ funName <- function(call) {
 pkgJobType <- function(jobType) {
   dplyr::case_when(
     jobType == "compute" ~ "dplyr",
-    jobType == "create_index" ~ "OmopPostgresConnector",
+    jobType == "create_index" ~ "OmopOnPostgres",
     jobType %in% c("drop_table", "insert_table") ~ "omopgenerics"
   )
 }
