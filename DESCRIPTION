@@ -23,6 +23,7 @@ Imports:
     rlang,
     stringr
 Suggests: 
+    bit64,
     knitr,
     omock,
     rmarkdown,

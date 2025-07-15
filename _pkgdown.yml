@@ -11,6 +11,10 @@ reference:
     contents:
       - copyCdmToPostgres
 
+  - title: "Create empty OMOP CDM tables"
+    contents:
+      - createOmopTablesOnPostgres
+
   - title: "Create and read logging files"
     contents:
       - postgresLog

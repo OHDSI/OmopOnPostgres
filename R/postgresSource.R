@@ -43,13 +43,13 @@ postgresSource <- function(con,
                            achillesSchema = NULL,
                            achillesPrefix = "") {
   # input checks
-  con <- assertCon(con = con)
-  cdmSchema <- assertSchema(con = con, schema = cdmSchema, null = FALSE)
-  cdmPrefix <- assertPrefix(prefix = cdmPrefix)
-  writeSchema <- assertSchema(con = con, schema = writeSchema, null = FALSE)
-  writePrefix <- assertPrefix(prefix = writePrefix)
-  achillesSchema <- assertSchema(con = con, schema = achillesSchema, null = TRUE)
-  achillesPrefix <- assertPrefix(prefix = achillesPrefix)
+  con <- validateCon(con = con)
+  cdmSchema <- validateSchema(con = con, schema = cdmSchema, null = FALSE)
+  cdmPrefix <- validatePrefix(prefix = cdmPrefix)
+  writeSchema <- validateSchema(con = con, schema = writeSchema, null = FALSE)
+  writePrefix <- validatePrefix(prefix = writePrefix)
+  achillesSchema <- validateSchema(con = con, schema = achillesSchema, null = TRUE)
+  achillesPrefix <- validatePrefix(prefix = achillesPrefix)
 
   # create source
   source <- structure(
@@ -305,14 +305,18 @@ dropTable <- function(src, type, name, callFrom = "drop_table") {
   invisible(TRUE)
 }
 listTables <- function(src, type) {
-  schema <- getSchema(src, type)
+  con <- getCon(src = src)
+  schema <- getSchema(src = src, type = type)
+  prefix <- getPrefix(src = src, type = type)
+  listTablesPostgres(con = con, schema = schema, prefix = prefix)
+}
+listTablesPostgres <- function(con, schema, prefix) {
   if (schema == "") {
     st <- "SELECT tablename FROM pg_tables WHERE schemaname LIKE 'pg_temp%';"
   } else {
     st <- paste0("SELECT tablename FROM pg_tables WHERE schemaname = '", schema, "';")
   }
-  x <- DBI::dbGetQuery(conn = getCon(src), statement = st)$tablename
-  prefix <- getPrefix(src, type)
+  x <- DBI::dbGetQuery(conn = con, statement = st)$tablename
   if (prefix != "") {
     x <- x |>
       purrr::keep(\(x) startsWith(x = x, prefix = prefix)) |>
@@ -390,11 +394,15 @@ getPrefix <- function(src, type) {
   }
 }
 formatName <- function(src, name, type) {
-  schema <- getSchema(src, type)
+  schema <- getSchema(src = src, type = type)
+  prefix <- getPrefix(src = src, type = type)
+  formatNamePostgres(schema = schema, prefix = prefix, name = name)
+}
+formatNamePostgres <- function(schema, prefix, name) {
   if (schema == "") {
-    paste0(getPrefix(src, type), name)
+    paste0(prefix, name)
   } else {
-    paste0(schema, ".", getPrefix(src, type), name)
+    paste0(schema, ".", prefix, name)
   }
 }
 IdName <- function(src, name, type) {
@@ -406,7 +414,7 @@ IdName <- function(src, name, type) {
     DBI::Id(schema = schema, table = name)
   }
 }
-assertCon <- function(con, call = parent.frame()) {
+validateCon <- function(con, call = parent.frame()) {
   if (!inherits(con, "PqConnection")) {
     c(x = "`con` is not a {.cls pqConnection} object.") |>
       cli::cli_abort(call = call)
@@ -416,14 +424,14 @@ assertCon <- function(con, call = parent.frame()) {
   }
   invisible(con)
 }
-assertSchema <- function(con, schema, null, call = parent.frame()) {
+validateSchema <- function(con, schema, null, call = parent.frame()) {
   omopgenerics::assertCharacter(schema, length = 1, null = null, call = call)
   emptySchema <- is.null(schema) | identical(schema, "")
   if (emptySchema) {
     if (null) {
       schema <- ""
     } else {
-      cli::cli_abort(c(x = "Schema must be defined."))
+      cli::cli_abort(c(x = "Schema must be defined."), call = call)
     }
   } else {
     if (!schemaExists(con, schema)) {
@@ -431,17 +439,17 @@ assertSchema <- function(con, schema, null, call = parent.frame()) {
         cli::cli_inform(c("i" = "Creating schema: {.pkg {schema}}."))
         createSchema(con, schema)
       } else {
-        cli::cli_abort(c(x = "schema: {.pkg {schema}} does not exist."))
+        cli::cli_abort(c(x = "schema: {.pkg {schema}} does not exist."), call = call)
       }
     }
   }
   invisible(schema)
 }
-assertPrefix <- function(prefix, call = parent.frame()) {
+validatePrefix <- function(prefix, call = parent.frame()) {
   if (is.null(prefix)) {
     prefix <- ""
   } else {
-    omopgenerics::assertCharacter(prefix, length = 1)
+    omopgenerics::assertCharacter(prefix, length = 1, call = call)
   }
   invisible(prefix)
 }
