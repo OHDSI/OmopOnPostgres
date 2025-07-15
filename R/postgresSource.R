@@ -394,11 +394,15 @@ getPrefix <- function(src, type) {
   }
 }
 formatName <- function(src, name, type) {
-  schema <- getSchema(src, type)
+  schema <- getSchema(src = src, type = type)
+  prefix <- getPrefix(src = src, type = type)
+  formatNamePostgres(schema = schema, prefix = prefix, name = name)
+}
+formatNamePostgres <- function(schema, prefix, name) {
   if (schema == "") {
-    paste0(getPrefix(src, type), name)
+    paste0(prefix, name)
   } else {
-    paste0(schema, ".", getPrefix(src, type), name)
+    paste0(schema, ".", prefix, name)
   }
 }
 IdName <- function(src, name, type) {

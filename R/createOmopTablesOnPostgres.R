@@ -6,10 +6,10 @@
 #' tables.
 #' @param cdmVersion Version of the OMOP CDM, it can be either '5.3' or '5.4'.
 #' @param overwrite Whether to overwrite if tables already exist.
-#' @param bigInt
+#' @param bigInt Whether to use `bigint` for person_id and unique identifier.
 #' @param cdmPrefix String, prefix leading the OMOP CDM Standard tables names.
 #'
-#' @return
+#' @return The omop tables will be created empty in the desired schema.
 #' @export
 #'
 createOmopTablesOnPostgres <- function(con,
@@ -26,36 +26,17 @@ createOmopTablesOnPostgres <- function(con,
   omopgenerics::assertLogical(x = bigInt, length = 1)
   cdmPrefix <- validatePrefix(prefix = cdmPrefix)
 
-  # create source
-  src <- postgresSource(
-    con = con,
-    cdmSchema = cdmSchema,
-    cdmPrefix = cdmPrefix,
-    writeSchema = cdmSchema,
-    writePrefix = cdmPrefix
-  )
-
   # tables to create
-  fields <- omopgenerics::omopTableFields(cdmVersion = cdmVersion) |>
-    dplyr::filter(.data$type == "cdm_table")
-  if (bigInt) {
+  fields <- postgresDatatypes[[cdmVersion]]
+  if (isFALSE(bigInt)) {
     fields <- fields |>
       dplyr::mutate(cdm_datatype = dplyr::if_else(
-        .data$cdm_field_name == "person_id", "bigint", .data$cdm_datatype
+        .data$cdm_datatype == "bigint", "integer", .data$cdm_datatype
       ))
   }
 
-  # correct types
-  fields <- fields |>
-    dplyr::mutate(cdm_datatype = dplyr::case_when(
-      .data$cdm_datatype == "datetime" ~ "timestamp",
-      .data$cdm_datatype == "float" ~ "numeric",
-      .data$cdm_datatype == "varchar(max)" ~ "TEXT",
-      .default = .data$cdm_datatype
-    ))
-
   # list creating tables
-  ls <- listTables(src = src, type = "write")
+  ls <- listTablesPostgres(con = con, schema = cdmSchema, prefix = cdmPrefix)
 
   # create tables
   for (nm in unique(fields$cdm_table_name)) {
@@ -64,7 +45,9 @@ createOmopTablesOnPostgres <- function(con,
     create <- TRUE
     if (tableExists) {
       if (overwrite) {
-        dropSourceTable(cdm = src, name = nm)
+        fn <- formatNamePostgres(schema = cdmSchema, prefix = cdmPrefix, name = nm)
+        st <- paste0("DROP TABLE IF EXISTS ", fn, ";")
+        DBI::dbExecute(conn = con, statement = st)
       } else {
         create <- FALSE
         cli::cli_inform(c(x = "Table {.pkg {nm}} could not be created because it already exists and overwrite is {.emph FALSE}."))
@@ -73,7 +56,7 @@ createOmopTablesOnPostgres <- function(con,
     if (create) {
       cols <- fields |>
         dplyr::filter(.data$cdm_table_name == .env$nm)
-      fn <- formatName(src = src, name = nm, type = "write")
+      fn <- formatNamePostgres(schema = cdmSchema, prefix = cdmPrefix, name = nm)
       st <- createStatement(name = fn, cols = cols)
       DBI::dbExecute(conn = con, statement = st)
       cli::cli_inform(c(v = "Table {.pkg {nm}} created succesfully."))

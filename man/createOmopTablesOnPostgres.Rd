@@ -23,7 +23,12 @@ tables.}
 
 \item{overwrite}{Whether to overwrite if tables already exist.}
 
+\item{bigInt}{Whether to use \code{bigint} for person_id and unique identifier.}
+
 \item{cdmPrefix}{String, prefix leading the OMOP CDM Standard tables names.}
+}
+\value{
+The omop tables will be created empty in the desired schema.
 }
 \description{
 Title

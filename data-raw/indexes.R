@@ -27,4 +27,31 @@ expectedIdx <- list(
   achilles_table = achillesIndexes
 )
 
-usethis::use_data(expectedIdx, internal = TRUE, overwrite = TRUE)
+vocabs <- c("5.3", "5.4")
+
+ids <- vocabs |>
+  purrr::map(\(v) {
+    omopgenerics::omopTables(v) |>
+      purrr::map(\(tab) {
+        omopgenerics::omopColumns(table = tab, field = "unique_id", version = v)
+      })
+  }) |>
+  unlist() |>
+  unique()
+
+postgresDatatypes <- vocabs |>
+  rlang::set_names() |>
+  purrr::map(\(v) {
+    omopgenerics::omopTableFields(cdmVersion = v) |>
+      dplyr::filter(.data$type == "cdm_table") |>
+      dplyr::mutate(cdm_datatype = dplyr::case_when(
+        .data$cdm_datatype == "datetime" ~ "timestamp",
+        .data$cdm_datatype == "float" ~ "numeric",
+        .data$cdm_datatype == "varchar(max)" ~ "TEXT",
+        .data$cdm_field_name %in% .env$ids ~ "bigint",
+        .default = .data$cdm_datatype
+      )) |>
+      dplyr::select(!"type")
+  })
+
+usethis::use_data(expectedIdx, postgresDatatypes, internal = TRUE, overwrite = TRUE)
