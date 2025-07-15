@@ -21,7 +21,7 @@ It relays on environmental variables such as:
 }
 \examples{
 \dontrun{
-library(OmopPostgresConnector)
+library(OmopOnPostgres)
 
 localPostgres()
 }

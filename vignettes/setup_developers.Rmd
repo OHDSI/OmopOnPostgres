@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 
 ## Set up
 
-In this vignette we explain how to set up your environment to be able to contribute to the package. **OmopPostgresConnector** is an open-source package open for contributions, if you want to contribute you will need to be able to run the tests locally. To do so you need a local postgres instance with the following credentials:
+In this vignette we explain how to set up your environment to be able to contribute to the package. **OmopOnPostgres** is an open-source package open for contributions, if you want to contribute you will need to be able to run the tests locally. To do so you need a local postgres instance with the following credentials:
 
 ```
 POSTGRES_USER=omop_postgres_connector
@@ -24,7 +24,7 @@ POSTGRES_PASSWORD=omopverse
 POSTGRES_DB=omop_test
 ```
 
-The GitHub actions run on a container where these [credentials](https://github.com/oxford-pharmacoepi/OmopPostgresConnector/blob/main/.github/workflows/postgres.yml#L13-L15) have already been created, you can rely on the GitHub actions to run tests there.
+The GitHub actions run on a container where these [credentials](https://github.com/oxford-pharmacoepi/ohdsi/blob/main/.github/workflows/postgres.yml#L13-L15) have already been created, you can rely on the GitHub actions to run tests there.
 
 There are several ways to have this:
 

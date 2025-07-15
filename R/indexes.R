@@ -70,6 +70,10 @@ existingIndexes.pq_cdm <- function(cdm, name) {
   # convert back the cdm object
   class(cdm) <- "cdm_reference"
 
+  # get connection
+  src <- omopgenerics::cdmSource(x = cdm)
+  con <- getCon(src = src)
+
   # get schema and table names
   x <- getSchemaAndTables(cdm = cdm, name = name)
 

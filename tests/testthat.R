@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(OmopPostgresConnector)
+library(OmopOnPostgres)
 
-test_check("OmopPostgresConnector")
+test_check("OmopOnPostgres")

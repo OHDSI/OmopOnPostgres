@@ -1,4 +1,4 @@
-url: https://oxford-pharmacoepi.github.io/OmopPostgresConnector/
+url: https://ohdsi.github.io/OmopOnPostgres/
 template:
   bootstrap: 5
 

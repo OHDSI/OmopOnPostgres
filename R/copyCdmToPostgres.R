@@ -9,7 +9,7 @@
 #'
 #' @examples
 #' #library(omock)
-#' #library(OmopPostgresConnector)
+#' #library(OmopOnPostgres)
 #' #
 #' #pq <- localPostgres()
 #' #cdm <- mockCdmFromDataset(datasetName = "GiBleed")

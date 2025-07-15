@@ -9,7 +9,7 @@
 #' @export
 # library(DBI)
 # library(RPostgres)
-# library(OmopPostgresConnector)
+# library(OmopOnPostgres)
 #
 # con <- dbConnect(
 #   drv = Postgres(),

@@ -13,7 +13,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' library(OmopPostgresConnector)
+#' library(OmopOnPostgres)
 #'
 #' localPostgres()
 #' }
