@@ -81,10 +81,10 @@ existingIndexes.pq_cdm <- function(cdm, name) {
   indexes <- dplyr::tbl(con, I("pg_indexes")) |>
     dplyr::inner_join(cdm[[nm]], by = c("schemaname", "tablename")) |>
     dplyr::collect() |>
-    dplyr::mutate(index = stringr::str_extract(
+    dplyr::mutate(existing_index = stringr::str_extract(
       string = .data$indexdef, pattern = "(?<=\\()[^)]*(?=\\))"
     )) |>
-    dplyr::select("table_name" = "tablename", "index")
+    dplyr::select("table_name" = "tablename", "existing_index")
 
   # drop table
   omopgenerics::dropSourceTable(cdm = cdm, name = nm)
