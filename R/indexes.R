@@ -125,7 +125,6 @@ createTableIndex.pq_cdm <- function(table, index) {
   invisible(res)
 }
 
-
 getSchemaAndTables <- function(cdm, name) {
   name |>
     purrr::map(\(nm) {
