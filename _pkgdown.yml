@@ -26,11 +26,10 @@ reference:
     desc: "Create and check existing indexes."
     contents:
       - createIndexes
-      - createTableIndexes
-      - createCdmIndexes
       - existingIndexes
-      - existingTableIndexes
-      - existingCdmIndexes
+      - expectedIndexes
+      - statusIndexes
+      - createTableIndex
 
   - title: "Create a postgres source object"
     contents:
