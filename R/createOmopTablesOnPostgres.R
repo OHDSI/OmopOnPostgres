@@ -27,12 +27,15 @@ createOmopTablesOnPostgres <- function(con,
   cdmPrefix <- validatePrefix(prefix = cdmPrefix)
 
   # tables to create
-  fields <- postgresDatatypes[[cdmVersion]]
+  fields <- postgresDatatypes[[cdmVersion]] |>
+    dplyr::filter(.data$type == "cdm_table")
   if (isFALSE(bigInt)) {
     fields <- fields |>
       dplyr::mutate(cdm_datatype = dplyr::if_else(
         .data$cdm_datatype == "bigint", "integer", .data$cdm_datatype
       ))
+  } else {
+    options("OmopOnPostgres.bigInt" = bigInt)
   }
 
   # list creating tables

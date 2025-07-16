@@ -326,37 +326,69 @@ listTablesPostgres <- function(con, schema, prefix) {
   return(x)
 }
 writeTable <- function(src, name, value, type) {
+  vocab <- "5.4"
   # whether to log
   toLog <- logSql()
 
-  # start logger
-  if (toLog) {
-    con <- getCon(src = src)
-    cols <- value |>
-      purrr::imap(\(x, nm) paste0(nm, " ", DBI::dbDataType(dbObj = con, x))) |>
-      paste0(collapse = ", ")
-    nm <- formatName(src = src, name = name, type = type)
-    sql <- paste0(
-      "CREATE", ifelse(type == "temp", " TEMP", ""), " TABLE ", nm, " (", cols,
-      ");"
+  # get attributes
+  con <- getCon(src = src)
+  fn <- formatName(src = src, name = name, type = type)
+  idn <- IdName(src = src, name = name, type = type)
+
+  # type
+  if (type %in% c("cdm", "achilles")) {
+    typ <- dplyr::if_else(type == "cdm", "cdm_table", "achilles")
+    colTypes <- postgresDatatypes[[vocab]] |>
+      dplyr::filter(
+        .data$type == .env$typ & .data$cdm_table_name == .env$name
+      ) |>
+      dplyr::select("cdm_field_name", "cdm_datatype") |>
+      dplyr::distinct()
+  } else if (type == "cohort") {
+    colTypes <- postgresDatatypes[[vocab]] |>
+      dplyr::filter(.data$type == "cohort") |>
+      dplyr::select("cdm_field_name", "cdm_datatype") |>
+      dplyr::distinct()
+  } else {
+    colTypes <- dplyr::tibble(
+      cdm_field_name = c("subject_id", "person_id"),
+      cdm_datatype = "bigint"
     )
+  }
+
+  # column type
+  value <- dplyr::as_tibble(value)
+  colTypes <- colTypes$cdm_datatype |>
+    rlang::set_names(nm = colTypes$cdm_field_name)
+  colTypes <- value |>
+    purrr::imap_chr(\(x, nm) {
+      if (nm %in% names(colTypes)) {
+        colTypes[[nm]]
+      } else {
+        DBI::dbDataType(dbObj = con, obj = x)
+      }
+    })
+
+  # start log
+  if (toLog) {
     logName <- startLogger(
-      jobName = paste("INSERT IN", nm, "A TIBBLE WITH", nrow(value), "ROWS"),
+      jobName = paste0("CREATE TABLE ", fn),
       jobType = "insert_table",
-      sql = extractSql(sql = sql),
+      sql = extractSql(sql = paste("INSERT INTO", fn, "A TABLE WITH", nrow(value), "ROWS;\n")),
       explain = NA_character_
     )
   }
 
   # insert table
   DBI::dbWriteTable(
-    conn = getCon(src = src),
-    name = IdName(src = src, name = name, type = type),
-    value = dplyr::as_tibble(x = value),
-    temporary = type == "temp"
+    conn = con,
+    name = idn,
+    value = value,
+    temporary = type == "temp",
+    field.types = colTypes
   )
 
-  # finish logger
+  # finish log
   if (toLog) {
     finishLogger(logName = logName, analyse = NA_character_)
   }
