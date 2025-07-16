@@ -38,20 +38,23 @@ ids <- vocabs |>
   }) |>
   unlist() |>
   unique()
+ids <- c(
+  "subject_id", "number_records", "number_subjects", "excluded_records",
+  "excluded_subjects", ids
+)
 
 postgresDatatypes <- vocabs |>
   rlang::set_names() |>
   purrr::map(\(v) {
     omopgenerics::omopTableFields(cdmVersion = v) |>
-      dplyr::filter(.data$type == "cdm_table") |>
       dplyr::mutate(cdm_datatype = dplyr::case_when(
+        .data$cdm_datatype == "logical" ~ "boolean",
         .data$cdm_datatype == "datetime" ~ "timestamp",
         .data$cdm_datatype == "float" ~ "numeric",
         .data$cdm_datatype == "varchar(max)" ~ "TEXT",
         .data$cdm_field_name %in% .env$ids ~ "bigint",
         .default = .data$cdm_datatype
-      )) |>
-      dplyr::select(!"type")
+      ))
   })
 
 usethis::use_data(expectedIdx, postgresDatatypes, internal = TRUE, overwrite = TRUE)
