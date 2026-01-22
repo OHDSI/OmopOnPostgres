@@ -249,8 +249,9 @@ readSourceTable.pq_cdm <- function(cdm, name) {
 
 #' @export
 summary.pq_cdm <- function(object, ...) {
+  version <- as.character(packageVersion(pkg = "OmopOnPostgres"))
   list(
-    package = "OmopOnPostgres",
+    package = paste0("OmopOnPostgres (", version, ")"),
     cdm_schema = attr(object, "cdm_schema"),
     cdm_prefix = attr(object, "cdm_prefix"),
     write_schema = attr(object, "write_schema"),
