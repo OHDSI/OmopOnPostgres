@@ -247,6 +247,21 @@ readSourceTable.pq_cdm <- function(cdm, name) {
   readTable(src = cdm, name = name, type = "write")
 }
 
+#' @export
+summary.pq_cdm <- function(object, ...) {
+  version <- as.character(packageVersion(pkg = "OmopOnPostgres"))
+  list(
+    package = paste0("OmopOnPostgres (", version, ")"),
+    cdm_schema = attr(object, "cdm_schema"),
+    cdm_prefix = attr(object, "cdm_prefix"),
+    write_schema = attr(object, "write_schema"),
+    write_prefix = attr(object, "write_prefix"),
+    achilles_schema = attr(object, "achilles_schema"),
+    achilles_prefix = attr(object, "achilles_prefix")
+  ) |>
+    purrr::compact()
+}
+
 computeTable <- function(src, type, name, sql, jobName) {
   # create sql
   name <- formatName(src = src, name = name, type = type)
