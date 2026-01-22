@@ -257,7 +257,8 @@ summary.pq_cdm <- function(object, ...) {
     write_prefix = attr(object, "write_prefix"),
     achilles_schema = attr(object, "achilles_schema"),
     achilles_prefix = attr(object, "achilles_prefix")
-  )
+  ) |>
+    purrr::compact()
 }
 
 computeTable <- function(src, type, name, sql, jobName) {
