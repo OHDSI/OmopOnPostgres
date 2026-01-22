@@ -135,6 +135,10 @@ compute.pq_cdm <- function(x, name, temporary = FALSE, overwrite = TRUE, type = 
     computeTable(src = src, type = type, name = name, sql = sql, jobName = jn)
     # delete intermediate table
     dropTable(src = src, type = "temp", name = intermediate, callFrom = "compute")
+  } else if (name %in% ls) {
+    # delete blocking table
+    dropTable(src = src, type = type, name = name, callFrom = "compute")
+    computeTable(src = src, type = type, name = name, sql = render, jobName = jobName)
   } else {
     computeTable(src = src, type = type, name = name, sql = render, jobName = jobName)
   }
