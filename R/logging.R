@@ -229,30 +229,42 @@ extractAnalyse <- function(src, sql) {
   analyse
 }
 logIdCounter <- function() {
-  id <- getOption("OmopOnPostgres.log_id", 1L)
-  options(OmopOnPostgres.log_id = id + 1L)
+  id <- as.integer(getOption("OmopOnPostgres.log_id", 0L)) + 1L
+  options(OmopOnPostgres.log_id = id)
   return(id)
 }
 getLogPath <- function() {
-  getOption("OmopOnPostgres.log_path", "")
+  x <- getOption("OmopOnPostgres.log_path", "")
+  if (identical(x, "")) {
+    x <- getOption("omopgenerics.log_sql_path", "")
+  }
+  return(x)
 }
 setLogPath <- function(x) {
   options(OmopOnPostgres.log_path = x)
 }
 getLogSql <- function() {
-  getOption("OmopOnPostgres.log_sql", FALSE)
+  x <- getOption("OmopOnPostgres.log_sql", NULL)
+  if (is.null(x)) {
+    x <- !is.null(getOption("omopgenerics.log_sql_path", NULL))
+  }
+  return(as.logical(x))
 }
 setLogSql <- function(x) {
   options(OmopOnPostgres.log_sql = x)
 }
 getLogExplain <- function() {
-  getOption("OmopOnPostgres.log_explain", FALSE)
+  x <- getOption("OmopOnPostgres.log_explain", NULL)
+  if (is.null(x)) {
+    x <- getOption("omopgenerics.log_sql_explain", FALSE)
+  }
+  return(as.logical(x))
 }
 setLogExplain <- function(x) {
   options(OmopOnPostgres.log_explain = x)
 }
 getLogAnalyse <- function() {
-  getOption("OmopOnPostgres.log_analyse", FALSE)
+  as.logical(getOption("OmopOnPostgres.log_analyse", FALSE))
 }
 setLogAnalyse <- function(x) {
   options(OmopOnPostgres.log_analyse = x)
