@@ -71,7 +71,7 @@ postgresSource <- function(con,
 }
 
 #' @export
-insertTable.pq_cdm <- function(cdm, name, table, overwrite = TRUE, temporary = FALSE) {
+insertTable.pq_cdm <- function(cdm, name, table, overwrite = TRUE, temporary = FALSE, ...) {
   # initial checks
   omopgenerics::assertCharacter(name, length = 1)
   table <- dplyr::as_tibble(table)
