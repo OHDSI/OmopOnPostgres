@@ -121,6 +121,10 @@ compute.pq_cdm <- function(x, name, temporary = FALSE, overwrite = TRUE, type = 
 
   ls <- listTables(src = src, type = type)
 
+  if (name %in% ls & isFALSE(overwrite)) {
+    cli::cli_abort(c(x = "Can not write table `{name}` as it already exists and `overwrite = FALSE`."))
+  }
+
   formattedName <- formatName(src = src, name = name, type = type)
   if (stringr::str_detect(string = render, pattern = formattedName)) {
     # compute into intermediate table
@@ -135,11 +139,11 @@ compute.pq_cdm <- function(x, name, temporary = FALSE, overwrite = TRUE, type = 
     computeTable(src = src, type = type, name = name, sql = sql, jobName = jn)
     # delete intermediate table
     dropTable(src = src, type = "temp", name = intermediate, callFrom = "compute")
-  } else if (name %in% ls) {
-    # delete blocking table
-    dropTable(src = src, type = type, name = name, callFrom = "compute")
-    computeTable(src = src, type = type, name = name, sql = render, jobName = jobName)
   } else {
+    # delete blocking table
+    if (name %in% ls) {
+      dropTable(src = src, type = type, name = name, callFrom = "compute")
+    }
     computeTable(src = src, type = type, name = name, sql = render, jobName = jobName)
   }
 
