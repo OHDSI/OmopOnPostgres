@@ -35,3 +35,9 @@ Config/testthat/edition: 3
 Depends: 
     R (>= 4.1)
 Config/roxygen2/version: 8.1.0
+Additional_repositories: 
+    https://apache.r-universe.dev,
+    https://r-dbi.r-universe.dev
+Config/gha/extra-packages: 
+    adbi=?ignore-unavailable&ignore-build-errors,
+    adbcpostgresql=?ignore-unavailable&ignore-build-errors

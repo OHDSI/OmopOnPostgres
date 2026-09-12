@@ -53,6 +53,23 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      # Deliberately a separate install.packages() rather than an extra
+      # repository for pak to resolve against, preventing dev builds of
+      # packages like arrow from silently replacing CRAN versions.
+      - name: Install adbc and adbi from R-Universe
+        run: |
+          try(install.packages(
+            c("adbcdrivermanager", "adbcpostgresql"),
+            repos = c(CRAN = "https://cloud.r-project.org", ADBC = "https://apache.r-universe.dev")
+          ))
+          try(install.packages(
+            "adbi",
+            repos = c(CRAN = "https://cloud.r-project.org", RDBI = "https://r-dbi.r-universe.dev")
+          ))
+          writeLines(paste0("adbcpostgresql available: ", requireNamespace("adbcpostgresql", quietly = TRUE)))
+          writeLines(paste0("adbi available: ", requireNamespace("adbi", quietly = TRUE)))
+        shell: Rscript {0}
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
