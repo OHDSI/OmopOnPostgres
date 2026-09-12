@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup PostgreSQL
-        uses: ikalnytskyi/action-setup-postgres@v3
+        uses: ikalnytskyi/action-setup-postgres@v8
         with:
           version: 16
           username: omop_postgres_connector
