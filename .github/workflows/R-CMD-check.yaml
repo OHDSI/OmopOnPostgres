@@ -15,33 +15,33 @@ jobs:
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: omop_postgres_connector
-          POSTGRES_PASSWORD: omopverse
-          POSTGRES_DB: omop_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U myuser"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     strategy:
       fail-fast: false
       matrix:
         config:
           - {os: ubuntu-latest,   r: 'release'}
+          - {os: macos-latest,    r: 'release'}
+          - {os: windows-latest,  r: 'release'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      OMOP_POSTGRES_CONNECTOR_HOST: localhost
+      OMOP_POSTGRES_CONNECTOR_PORT: 5432
+      OMOP_POSTGRES_CONNECTOR_USER: omop_postgres_connector
+      OMOP_POSTGRES_CONNECTOR_PASSWORD: omopverse
+      OMOP_POSTGRES_CONNECTOR_DB: omop_test
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup PostgreSQL
+        uses: ikalnytskyi/action-setup-postgres@v8
+        with:
+          version: 16
+          username: omop_postgres_connector
+          password: omopverse
+          database: omop_test
 
       - uses: r-lib/actions/setup-pandoc@v2
 

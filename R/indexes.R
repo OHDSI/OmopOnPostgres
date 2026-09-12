@@ -20,7 +20,9 @@ omopgenerics::createIndexes
 omopgenerics::createTableIndex
 
 #' @export
-expectedIndexes.pq_cdm <- function(cdm, name) {
+expectedIndexes.pq_cdm <- function(x, name) {
+  cdm <- x
+
   # convert back the cdm object
   class(cdm) <- "cdm_reference"
 
@@ -66,7 +68,8 @@ expectedIndexes.pq_cdm <- function(cdm, name) {
 }
 
 #' @export
-existingIndexes.pq_cdm <- function(cdm, name) {
+existingIndexes.pq_cdm <- function(x, name) {
+  cdm <- x
   # convert back the cdm object
   class(cdm) <- "cdm_reference"
 

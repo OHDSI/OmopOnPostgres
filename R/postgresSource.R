@@ -20,11 +20,11 @@
 localPostgres <- function() {
   DBI::dbConnect(
     drv = RPostgres::Postgres(),
-    dbname = Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "omop_test"),
-    host = Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "localhost"),
+    dbname = Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres"),
+    host = Sys.getenv("OMOP_POSTGRES_CONNECTOR_HOST", "localhost"),
     port = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PORT", "5432"),
-    user = Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", "omop_postgres_connector"),
-    password = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", "omopverse")
+    user = Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", Sys.getenv("USER")),
+    password = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", "")
   )
 }
 
@@ -249,7 +249,7 @@ readSourceTable.pq_cdm <- function(cdm, name) {
 
 #' @export
 summary.pq_cdm <- function(object, ...) {
-  version <- as.character(packageVersion(pkg = "OmopOnPostgres"))
+  version <- as.character(utils::packageVersion(pkg = "OmopOnPostgres"))
   list(
     package = paste0("OmopOnPostgres (", version, ")"),
     cdm_schema = attr(object, "cdm_schema"),
