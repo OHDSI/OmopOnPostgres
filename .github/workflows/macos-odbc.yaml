@@ -1,0 +1,16 @@
+- name: Install System ODBC (macOS)
+        run: |
+          brew install unixodbc psqlodbc
+
+          # Dynamically find the path to the PostgreSQL Unicode driver installed by Homebrew
+          DRIVER_PATH=$(find $(brew --prefix psqlodbc) -name "psqlodbcw.so")
+
+          # Create an odbcinst.ini configuration block
+          echo "[PostgreSQL Unicode]" > odbcinst.ini
+          echo "Driver=$DRIVER_PATH" >> odbcinst.ini
+
+          # Register the driver with unixODBC
+          odbcinst -i -d -f odbcinst.ini
+
+          # Verify the driver was registered correctly
+          cat $(odbcinst -j | grep "DRIVERS" | cut -d' ' -f1 --complement)

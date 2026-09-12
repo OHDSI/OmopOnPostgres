@@ -21,7 +21,8 @@ Imports:
     purrr,
     rlang,
     stringr,
-    adbi
+    adbi,
+    odbc
 Suggests: 
     bit64,
     adbcpostgresql,
