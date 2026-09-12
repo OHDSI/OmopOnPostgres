@@ -1,4 +1,39 @@
-- name: Install System ODBC (macOS)
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+name: Macos odbc
+
+permissions: read-all
+
+jobs:
+  R-CMD-check:
+    runs-on: macos-latest
+    name: Check
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      OMOP_POSTGRES_CONNECTOR_HOST: localhost
+      OMOP_POSTGRES_CONNECTOR_PORT: 5432
+      OMOP_POSTGRES_CONNECTOR_USER: omop_postgres_connector
+      OMOP_POSTGRES_CONNECTOR_PASSWORD: omopverse
+      OMOP_POSTGRES_CONNECTOR_DB: omop_test
+      TEST_PG_DRIVER: adbc
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PostgreSQL
+        uses: ikalnytskyi/action-setup-postgres@v8
+        with:
+          version: 16
+          username: omop_postgres_connector
+          password: omopverse
+          database: omop_test
+
+      - name: Install System ODBC (macOS)
         run: |
           brew install unixodbc psqlodbc
 
@@ -14,3 +49,34 @@
 
           # Verify the driver was registered correctly
           cat $(odbcinst -j | grep "DRIVERS" | cut -d' ' -f1 --complement)
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "release"
+          use-public-rspm: true
+
+      - name: Install adbc and adbi from R-Universe
+        run: |
+          try(install.packages(
+            c("adbcdrivermanager", "adbcpostgresql"),
+            repos = c(CRAN = "https://cloud.r-project.org", ADBC = "https://apache.r-universe.dev")
+          ))
+          try(install.packages(
+            "adbi",
+            repos = c(CRAN = "https://cloud.r-project.org", RDBI = "https://r-dbi.r-universe.dev")
+          ))
+          writeLines(paste0("adbcpostgresql available: ", requireNamespace("adbcpostgresql", quietly = TRUE)))
+          writeLines(paste0("adbi available: ", requireNamespace("adbi", quietly = TRUE)))
+        shell: Rscript {0}
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          build_args: "c(\"--no-manual\",\"--compact-vignettes=gs+qpdf\")"
