@@ -18,7 +18,7 @@ Imports:
     DBI,
     dbplyr,
     dplyr,
-    omopgenerics (>= 1.3.0),
+    omopgenerics (>= 1.3.7),
     purrr,
     rlang,
     stringr
