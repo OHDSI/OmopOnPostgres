@@ -15,8 +15,14 @@ It relays on environmental variables such as:
 ## Usage
 
 ``` r
-localPostgres()
+localPostgres(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres"))
 ```
+
+## Arguments
+
+- client:
+
+  Client
 
 ## Value
 
