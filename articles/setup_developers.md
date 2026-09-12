@@ -73,17 +73,10 @@ If your connection is successful you should be able to run the following
 lines of code without any error:
 
 ``` r
+
 library(DBI)
 library(RPostgres)
 library(dplyr)
-#> 
-#> Attaching package: 'dplyr'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
 
 # create connection
 con <- dbConnect(
@@ -95,35 +88,15 @@ con <- dbConnect(
   password = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", "omopverse")
 )
 con
-#> <PqConnection> omop_test@localhost:5432
 
 # create new schema
 dbExecute(conn = con, statement = "CREATE SCHEMA opc_main;")
-#> [1] 0
 dbWriteTable(conn = con, name = Id(schema = "opc_main", table = "test"), value = cars)
 tbl(con, I("opc_main.test"))
-#> # Source:   table<opc_main.test> [?? x 2]
-#> # Database: postgres  [omop_postgres_connector@localhost:5432/omop_test]
-#>    speed  dist
-#>    <dbl> <dbl>
-#>  1     4     2
-#>  2     4    10
-#>  3     7     4
-#>  4     7    22
-#>  5     8    16
-#>  6     9    10
-#>  7    10    18
-#>  8    10    26
-#>  9    10    34
-#> 10    11    17
-#> # ℹ more rows
 dbExecute(con, "DROP SCHEMA opc_main CASCADE;")
-#> NOTICE:  drop cascades to table opc_main.test
-#> [1] 0
 
 # create new database
 dbExecute(conn = con, statement = "CREATE DATABASE opc_test;")
-#> [1] 0
 dbDisconnect(conn = con)
 
 # connect to new database
@@ -137,24 +110,8 @@ con <- dbConnect(
 )
 
 dbExecute(conn = con, statement = "CREATE SCHEMA opc_main;")
-#> [1] 0
 dbWriteTable(conn = con, name = Id(schema = "opc_main", table = "test"), value = cars)
 tbl(con, I("opc_main.test"))
-#> # Source:   table<opc_main.test> [?? x 2]
-#> # Database: postgres  [omop_postgres_connector@localhost:5432/opc_test]
-#>    speed  dist
-#>    <dbl> <dbl>
-#>  1     4     2
-#>  2     4    10
-#>  3     7     4
-#>  4     7    22
-#>  5     8    16
-#>  6     9    10
-#>  7    10    18
-#>  8    10    26
-#>  9    10    34
-#> 10    11    17
-#> # ℹ more rows
 dbDisconnect(conn = con)
 
 # delete created database
@@ -167,7 +124,6 @@ con <- dbConnect(
   password = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", "omopverse")
 )
 dbExecute(con, "DROP DATABASE opc_test;")
-#> [1] 0
 dbDisconnect(conn = con)
 ```
 

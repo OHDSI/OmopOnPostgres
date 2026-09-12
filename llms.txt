@@ -8,6 +8,7 @@ You can install the development version of OmopOnPostgres from
 [GitHub](https://github.com/) with:
 
 ``` r
+
 # install.packages("devtools")
 devtools::install_github("ohdsi/OmopOnPostgres")
 ```
@@ -17,6 +18,7 @@ devtools::install_github("ohdsi/OmopOnPostgres")
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
+
 library(OmopOnPostgres)
 ## basic example code
 ```
@@ -25,6 +27,7 @@ What is special about using `README.Rmd` instead of just `README.md`?
 You can include R chunks like so:
 
 ``` r
+
 summary(cars)
 #>      speed           dist       
 #>  Min.   : 4.0   Min.   :  2.00  
