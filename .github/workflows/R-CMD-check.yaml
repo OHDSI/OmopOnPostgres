@@ -25,7 +25,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U myuser"
+          --health-cmd="pg_isready -U omop_postgres_connector -d omop_test"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -39,6 +39,11 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      OMOP_POSTGRES_CONNECTOR_HOST: localhost
+      OMOP_POSTGRES_CONNECTOR_PORT: 5432
+      OMOP_POSTGRES_CONNECTOR_USER: omop_postgres_connector
+      OMOP_POSTGRES_CONNECTOR_PASSWORD: omopverse
+      OMOP_POSTGRES_CONNECTOR_DB: omop_test
 
     steps:
       - uses: actions/checkout@v4

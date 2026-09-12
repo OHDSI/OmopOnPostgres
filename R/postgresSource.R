@@ -21,7 +21,7 @@ localPostgres <- function() {
   DBI::dbConnect(
     drv = RPostgres::Postgres(),
     dbname = Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres"),
-    host = Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "localhost"),
+    host = Sys.getenv("OMOP_POSTGRES_CONNECTOR_HOST", "localhost"),
     port = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PORT", "5432"),
     user = Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", Sys.getenv("USER")),
     password = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", "")
