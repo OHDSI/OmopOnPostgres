@@ -16,9 +16,6 @@ dropCdm <- function(cdm) {
 
   # drop achilles tables
   dropTable(src = src, type = "achilles", name = x$achilles_tables)
-
-  # disconnect
-  cdmDisconnect(cdm = cdm)
 }
 deleteAllTables <- function() {
   con <- localPostgres()

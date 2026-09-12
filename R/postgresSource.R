@@ -8,6 +8,7 @@
 #' * user = `OMOP_POSTGRES_CONNECTOR_USER`
 #' * password = `OMOP_POSTGRES_CONNECTOR_PASSWORD`
 #'
+#' @param client Client
 #' @return A connection to your postgres local instance
 #' @export
 #'
@@ -17,15 +18,34 @@
 #'
 #' localPostgres()
 #' }
-localPostgres <- function() {
-  DBI::dbConnect(
-    drv = RPostgres::Postgres(),
-    dbname = Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres"),
-    host = Sys.getenv("OMOP_POSTGRES_CONNECTOR_HOST", "localhost"),
-    port = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PORT", "5432"),
-    user = Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", Sys.getenv("USER")),
-    password = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", "")
-  )
+localPostgres <- function(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres")) {
+  omopgenerics::assertCharacter(client, length = 1)
+  if (client == "RPostgres") {
+    DBI::dbConnect(
+      drv = RPostgres::Postgres(),
+      dbname = Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres"),
+      host = Sys.getenv("OMOP_POSTGRES_CONNECTOR_HOST", "localhost"),
+      port = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PORT", "5432"),
+      user = Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", Sys.getenv("USER")),
+      password = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", "")
+    )
+  } else if (client == "adbc") {
+    uri_string <- sprintf(
+      "postgresql://%s:%s@%s:%s/%s",
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", Sys.getenv("USER")),
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", ""),
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_HOST", "localhost"),
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_PORT", "5432"),
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres")
+    )
+    DBI::dbConnect(
+      adbi::adbi("adbcpostgresql"),
+      uri = uri_string,
+      bigint = "integer64"
+    )
+  } else {
+    cli::cli_abort("{client} not supported")
+  }
 }
 
 #' Create a postgres source object
@@ -403,13 +423,24 @@ writeTable <- function(src, name, value, type) {
   }
 
   # insert table
-  DBI::dbWriteTable(
+  if (DBI::dbExistsTable(con, idn)) {
+    DBI::dbRemoveTable(con, idn)
+  }
+  problem_types <- c("DOUBLE", "NUMERIC", "DECIMAL", "FLOAT")
+  colTypes[toupper(colTypes) %in% problem_types] <- "DOUBLE PRECISION"
+  DBI::dbCreateTable(
     conn = con,
     name = idn,
-    value = value,
-    temporary = type == "temp",
-    field.types = colTypes
+    fields = colTypes,
+    temporary = type == "temp"
   )
+  if (nrow(value) > 0) {
+  DBI::dbAppendTable(
+    conn = con,
+    name = idn,
+    value = value
+  )
+  }
 
   # finish log
   if (toLog) {
@@ -470,12 +501,13 @@ IdName <- function(src, name, type) {
   }
 }
 validateCon <- function(con, call = parent.frame()) {
-  if (!inherits(con, "PqConnection")) {
-    c(x = "`con` is not a {.cls pqConnection} object.") |>
+  if (!inherits(con, c("PqConnection", "AdbiConnection"))) {
+    c(x = "`con` is not supported") |>
       cli::cli_abort(call = call)
   }
   if (!DBI::dbIsValid(con)) {
-    cli::cli_abort(c(x = "Connection is no longer valid."), call = call)
+    cli::cli_abort(c(x = "Connection is no longer valid."),
+                   call = call)
   }
   invisible(con)
 }

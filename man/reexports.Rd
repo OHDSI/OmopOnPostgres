@@ -23,8 +23,8 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{dplyr}{\code{\link[dplyr]{compute}}}
+  \item{dplyr}{\code{\link[dplyr:compute]{compute()}}}
 
-  \item{omopgenerics}{\code{\link[omopgenerics]{cdmDisconnect}}, \code{\link[omopgenerics]{cdmTableFromSource}}, \code{\link[omopgenerics]{createIndexes}}, \code{\link[omopgenerics]{createTableIndex}}, \code{\link[omopgenerics]{dropSourceTable}}, \code{\link[omopgenerics]{existingIndexes}}, \code{\link[omopgenerics]{expectedIndexes}}, \code{\link[omopgenerics]{insertCdmTo}}, \code{\link[omopgenerics]{insertTable}}, \code{\link[omopgenerics]{listSourceTables}}, \code{\link[omopgenerics]{readSourceTable}}, \code{\link[omopgenerics]{statusIndexes}}}
+  \item{omopgenerics}{\code{\link[omopgenerics:cdmDisconnect]{cdmDisconnect()}}, \code{\link[omopgenerics:cdmTableFromSource]{cdmTableFromSource()}}, \code{\link[omopgenerics:createIndexes]{createIndexes()}}, \code{\link[omopgenerics:createTableIndex]{createTableIndex()}}, \code{\link[omopgenerics:dropSourceTable]{dropSourceTable()}}, \code{\link[omopgenerics:existingIndexes]{existingIndexes()}}, \code{\link[omopgenerics:expectedIndexes]{expectedIndexes()}}, \code{\link[omopgenerics:insertCdmTo]{insertCdmTo()}}, \code{\link[omopgenerics:insertTable]{insertTable()}}, \code{\link[omopgenerics:listSourceTables]{listSourceTables()}}, \code{\link[omopgenerics:readSourceTable]{readSourceTable()}}, \code{\link[omopgenerics:statusIndexes]{statusIndexes()}}}
 }}
 

@@ -13,7 +13,7 @@ jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }}) - ${{ matrix.driver }}
 
     strategy:
       fail-fast: false
@@ -22,6 +22,7 @@ jobs:
           - {os: ubuntu-latest,   r: 'release'}
           - {os: macos-latest,    r: 'release'}
           - {os: windows-latest,  r: 'release'}
+        driver: ['RPostgres', 'adbc']
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -31,6 +32,7 @@ jobs:
       OMOP_POSTGRES_CONNECTOR_USER: omop_postgres_connector
       OMOP_POSTGRES_CONNECTOR_PASSWORD: omopverse
       OMOP_POSTGRES_CONNECTOR_DB: omop_test
+      TEST_PG_DRIVER: ${{ matrix.driver }}
 
     steps:
       - uses: actions/checkout@v4

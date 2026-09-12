@@ -4,7 +4,10 @@
 \alias{localPostgres}
 \title{This function creates a connection to the local postgres instance}
 \usage{
-localPostgres()
+localPostgres(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres"))
+}
+\arguments{
+\item{client}{Client}
 }
 \value{
 A connection to your postgres local instance
