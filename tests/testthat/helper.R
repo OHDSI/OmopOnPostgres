@@ -5,6 +5,6 @@ get_test_drivers <- function() {
     return(ci_driver)
   } else {
     # If local, test everything
-    return(c("RPostgres", "adbc"))
+    return(c("RPostgres", "adbc", "odbc"))
   }
 }

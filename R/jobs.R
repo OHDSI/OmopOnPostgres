@@ -57,6 +57,9 @@ getJobs.PqConnection <- function(src, user = NULL) {
 #' @export
 getJobs.AdbiConnection <- getJobs.PqConnection
 
+#' @export
+getJobs.PostgreSQL <- getJobs.PqConnection
+
 #' Cancel a Postgres job.
 #'
 #' @param src It can either be a cdm_reference, a postgres_source or a
@@ -105,3 +108,6 @@ cancelJob.PqConnection <- function(src, pid) {
 
 #' @export
 cancelJob.AdbiConnection <- cancelJob.PqConnection
+
+#' @export
+cancelJob.PostgreSQL <- cancelJob.PqConnection

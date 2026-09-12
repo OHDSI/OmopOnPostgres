@@ -20,7 +20,9 @@
 #' }
 localPostgres <- function(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres")) {
   omopgenerics::assertCharacter(client, length = 1)
+
   if (client == "RPostgres") {
+
     DBI::dbConnect(
       drv = RPostgres::Postgres(),
       dbname = Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres"),
@@ -29,7 +31,9 @@ localPostgres <- function(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres")) {
       user = Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", Sys.getenv("USER")),
       password = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", "")
     )
+
   } else if (client == "adbc") {
+
     uri_string <- sprintf(
       "postgresql://%s:%s@%s:%s/%s",
       Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", Sys.getenv("USER")),
@@ -38,16 +42,29 @@ localPostgres <- function(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres")) {
       Sys.getenv("OMOP_POSTGRES_CONNECTOR_PORT", "5432"),
       Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres")
     )
+
     DBI::dbConnect(
       adbi::adbi("adbcpostgresql"),
       uri = uri_string,
       bigint = "integer64"
     )
+
+  } else if (client == "odbc") {
+
+    DBI::dbConnect(
+      drv = odbc::odbc(),
+      driver = Sys.getenv("OMOP_POSTGRES_ODBC_DRIVER", "PostgreSQL Unicode"),
+      server = Sys.getenv("OMOP_POSTGRES_CONNECTOR_HOST", "localhost"),
+      port = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PORT", "5432"),
+      database = Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres"),
+      uid = Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", Sys.getenv("USER")),
+      pwd = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", "")
+    )
+
   } else {
     cli::cli_abort("{client} not supported")
   }
 }
-
 #' Create a postgres source object
 #'
 #' @inheritParams pqSourceDoc
@@ -501,7 +518,7 @@ IdName <- function(src, name, type) {
   }
 }
 validateCon <- function(con, call = parent.frame()) {
-  if (!inherits(con, c("PqConnection", "AdbiConnection"))) {
+  if (!inherits(con, c("PqConnection", "AdbiConnection", "PostgreSQL"))) {
     c(x = "`con` is not supported") |>
       cli::cli_abort(call = call)
   }

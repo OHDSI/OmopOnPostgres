@@ -16,13 +16,16 @@ knitr::opts_chunk$set(
 # OmopOnPostgres
 
 | Platform | Driver | Status |
-|:-----------------------|:-----------------------|:-----------------------|
+|:---|:---|:---|
 | **Ubuntu** | RPostgres | [![Ubuntu RPostgres](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-rpostgres.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-rpostgres.yaml) |
 | **Ubuntu** | adbc | [![Ubuntu adbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-adbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-adbc.yaml) |
+| **Ubuntu** | odbc | [![Ubuntu odbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-odbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-odbc.yaml) |
 | **macOS** | RPostgres | [![macOS RPostgres](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-rpostgres.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-rpostgres.yaml) |
 | **macOS** | adbc | [![macOS adbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-adbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-adbc.yaml) |
+| **macOS** | odbc | [![macOS odbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-odbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-odbc.yaml) |
 | **Windows** | RPostgres | [![Windows RPostgres](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-rpostgres.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-rpostgres.yaml) |
 | **Windows** | adbc | [![Windows adbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-adbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-adbc.yaml) |
+| **Windows** | odbc | [![Windows odbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-odbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-odbc.yaml) |
 
 The goal of OmopOnPostgres is to ...
 
