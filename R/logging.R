@@ -207,6 +207,9 @@ extractSql <- function(sql) {
 extractExplain <- function(src, sql) {
   if (getLogExplain()) {
     con <- getCon(src = src)
+    if (inherits(con, "AdbiConnection")) {
+      return(NA_character_)
+    }
     sql <- paste0("EXPLAIN ", sql)
     DBI::dbGetQuery(conn = con, statement = sql) |>
       dplyr::pull() |>
@@ -216,17 +219,15 @@ extractExplain <- function(src, sql) {
   }
 }
 extractAnalyse <- function(src, sql) {
-  if (getLogAnalyse()) {
-    sql <- paste0("EXPLAIN ANALYSE ", sql)
-    analyse <- DBI::dbGetQuery(conn = getCon(src = src), statement = sql) |>
+  con <- getCon(src = src)
+  if (getLogAnalyse() && !inherits(con, "AdbiConnection")) {
+    DBI::dbGetQuery(conn = con, statement = paste0("EXPLAIN ANALYSE ", sql)) |>
       dplyr::pull() |>
       paste0(collapse = "\n")
   } else {
-    # execute
-    DBI::dbExecute(conn = getCon(src = src), statement = sql)
-    analyse <- NA_character_
+    DBI::dbExecute(conn = con, statement = sql)
+    NA_character_
   }
-  analyse
 }
 logIdCounter <- function() {
   id <- as.integer(getOption("OmopOnPostgres.log_id", 0L)) + 1L

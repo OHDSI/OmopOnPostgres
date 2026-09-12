@@ -1,9 +1,10 @@
-test_that("check postgres source", {
+for (drv in get_test_drivers()) {
+
+  test_that(sprintf("check postgres source using %s", drv), {
   skip_on_cran()
 
   # local connection works
-  expect_no_error(con <- localPostgres())
-  expect_true(inherits(con, "PqConnection"))
+  expect_no_error(con <- localPostgres(client = drv))
 
   # create postgres source
   expect_no_error(src <- postgresSource(
@@ -26,3 +27,5 @@ test_that("check postgres source", {
   # disconnect
   expect_no_error(dropCdm(cdm = pq_cdm))
 })
+
+}
