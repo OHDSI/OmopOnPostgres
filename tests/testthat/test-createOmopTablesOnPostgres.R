@@ -1,9 +1,13 @@
-test_that("test you can create empty table", {
+for (drv in get_test_drivers()) {
+
+test_that(sprintf("test you can create empty table using %s", drv), {
+    skip_on_cran()
+
   # delete tables
   deleteAllTables()
 
   # create connection
-  con <- localPostgres()
+  con <- localPostgres(client = drv)
 
   # all tables to be created
   allTables <- omopgenerics::omopTableFields(cdmVersion = "5.4") |>
@@ -100,4 +104,6 @@ test_that("test you can create empty table", {
 
   DBI::dbDisconnect(conn = con)
   deleteAllTables()
-})
+  })
+
+}

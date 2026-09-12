@@ -13,7 +13,7 @@ jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }}) - ${{ matrix.driver }}
 
     strategy:
       fail-fast: false
@@ -22,6 +22,7 @@ jobs:
           - {os: ubuntu-latest,   r: 'release'}
           - {os: macos-latest,    r: 'release'}
           - {os: windows-latest,  r: 'release'}
+        driver: ['RPostgres', 'adbc']
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -31,6 +32,7 @@ jobs:
       OMOP_POSTGRES_CONNECTOR_USER: omop_postgres_connector
       OMOP_POSTGRES_CONNECTOR_PASSWORD: omopverse
       OMOP_POSTGRES_CONNECTOR_DB: omop_test
+      TEST_PG_DRIVER: ${{ matrix.driver }}
 
     steps:
       - uses: actions/checkout@v4
@@ -50,6 +52,23 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
+
+      # Deliberately a separate install.packages() rather than an extra
+      # repository for pak to resolve against, preventing dev builds of
+      # packages like arrow from silently replacing CRAN versions.
+      - name: Install adbc and adbi from R-Universe
+        run: |
+          try(install.packages(
+            c("adbcdrivermanager", "adbcpostgresql"),
+            repos = c(CRAN = "https://cloud.r-project.org", ADBC = "https://apache.r-universe.dev")
+          ))
+          try(install.packages(
+            "adbi",
+            repos = c(CRAN = "https://cloud.r-project.org", RDBI = "https://r-dbi.r-universe.dev")
+          ))
+          writeLines(paste0("adbcpostgresql available: ", requireNamespace("adbcpostgresql", quietly = TRUE)))
+          writeLines(paste0("adbi available: ", requireNamespace("adbi", quietly = TRUE)))
+        shell: Rscript {0}
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:

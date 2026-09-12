@@ -50,7 +50,7 @@ postgresDatatypes <- vocabs |>
       dplyr::mutate(cdm_datatype = dplyr::case_when(
         .data$cdm_datatype == "logical" ~ "boolean",
         .data$cdm_datatype == "datetime" ~ "timestamp",
-        .data$cdm_datatype == "float" ~ "numeric",
+        .data$cdm_datatype %in% c("float", "numeric") ~ "double precision",
         .data$cdm_datatype == "varchar(max)" ~ "TEXT",
         .data$cdm_field_name %in% .env$ids ~ "bigint",
         .default = .data$cdm_datatype

@@ -1,6 +1,8 @@
-test_that("job management", {
+for (drv in get_test_drivers()) {
+
+  test_that(sprintf("job management using %s", drv), {
   skip_on_cran()
-  con <- localPostgres()
+  con <- localPostgres(client = drv)
   cdm <- omock::mockCdmFromDataset(datasetName = "GiBleed")
   pcdm <- copyCdmToPostgres(cdm = cdm, con = con, cdmPrefix = "job_c_", writePrefix = "job_w_")
 
@@ -11,7 +13,9 @@ test_that("job management", {
   user <- Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", "omop_postgres_connector")
   expect_no_error(getJobs(src = pcdm, user = user))
 
-  expect_message(expect_message(cancelJob(pcdm, 123456789)))
+  expect_message(cancelJob(pcdm, 123456789))
 
   dropCdm(pcdm)
 })
+
+}
