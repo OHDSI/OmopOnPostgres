@@ -42,6 +42,8 @@ getJobs.pq_cdm <- function(src, user = NULL) {
 getJobs.PqConnection <- function(src, user = NULL) {
   omopgenerics::assertCharacter(user, null = TRUE)
 
+  rlang::local_options(nanoarrow.warn_unregistered_extension = FALSE)
+
   x <- dplyr::tbl(src, I("pg_stat_activity"))
 
   if (!is.null(user)) {
@@ -53,7 +55,7 @@ getJobs.PqConnection <- function(src, user = NULL) {
 }
 
 #' @export
-getJobs.adbi_connection <- getJobs.PqConnection
+getJobs.AdbiConnection <- getJobs.PqConnection
 
 #' Cancel a Postgres job.
 #'
@@ -79,18 +81,27 @@ cancelJob.pq_cdm <- function(src, pid) {
 }
 
 #' @export
+#' @export
 cancelJob.PqConnection <- function(src, pid) {
   omopgenerics::assertNumeric(pid, integerish = TRUE)
   pids <- unique(pid)
 
-  for (pid in pids) {
-    cli::cli_inform(c(i = "Cancelling job with `pid = {.pkg {pid}}`."))
-    statment <- paste0("SELECT pg_cancel_backend(", pid,")")
-    DBI::dbExecute(conn = src, statement = statment)
+  active_pids <- DBI::dbGetQuery(src, "SELECT pid FROM pg_stat_activity")$pid
+
+  # Separate valid and invalid PIDs
+  valid_pids <- intersect(pids, active_pids)
+  invalid_pids <- setdiff(pids, active_pids)
+  if (length(invalid_pids) > 0) {
+    cli::cli_inform("The following PIDs are not active and will be skipped: {.pkg {invalid_pids}}")
+  }
+  for (p in valid_pids) {
+    cli::cli_inform(c(i = "Cancelling job with `pid = {.pkg {p}}`."))
+    statement <- paste0("SELECT pg_cancel_backend(", p, ")")
+    DBI::dbExecute(conn = src, statement = statement)
   }
 
   invisible(TRUE)
 }
 
 #' @export
-cancelJob.adbi_connection <- cancelJob.PqConnection
+cancelJob.AdbiConnection <- cancelJob.PqConnection

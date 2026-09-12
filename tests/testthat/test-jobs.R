@@ -13,7 +13,7 @@ for (drv in get_test_drivers()) {
   user <- Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", "omop_postgres_connector")
   expect_no_error(getJobs(src = pcdm, user = user))
 
-  expect_message(expect_message(cancelJob(pcdm, 123456789)))
+  expect_message(cancelJob(pcdm, 123456789))
 
   dropCdm(pcdm)
 })
