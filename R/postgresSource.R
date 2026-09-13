@@ -460,22 +460,26 @@ writeTable <- function(src, name, value, type) {
   problem_types <- c("DOUBLE", "NUMERIC", "DECIMAL", "FLOAT")
   colTypes[toupper(colTypes) %in% problem_types] <- "DOUBLE PRECISION"
 
-  # DatabaseConnector has incomplete DBI support; use raw SQL and its native insert function
   is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
-
   if (is_dbc) {
-    # 1. Drop existing table
-    DBI::dbExecute(con, paste0("DROP TABLE IF EXISTS ", fn, ";"))
-
-    # 2. Construct and execute CREATE TABLE statement manually WITH quoted identifiers
-    quoted_cols <- DBI::dbQuoteIdentifier(con, names(colTypes))
+    DatabaseConnector::executeSql(
+      connection = con,
+      sql = paste0("DROP TABLE IF EXISTS ", fn, ";"),
+      progressBar = FALSE,
+      reportOverallTime = FALSE
+    )
+    quoted_cols <- paste0('"', names(colTypes), '"')
     col_defs <- paste(quoted_cols, colTypes, collapse = ", ")
 
     temp_kw <- if (type == "temp") "TEMP " else ""
     create_sql <- sprintf("CREATE %sTABLE %s (%s);", temp_kw, fn, col_defs)
-    DBI::dbExecute(con, create_sql)
 
-    # 3. Insert data using native insertTable
+    DatabaseConnector::executeSql(
+      connection = con,
+      sql = create_sql,
+      progressBar = FALSE,
+      reportOverallTime = FALSE
+    )
     if (nrow(value) > 0) {
       DatabaseConnector::insertTable(
         connection = con,
