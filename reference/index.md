@@ -85,3 +85,5 @@ Create a local postgres connection using environmental variables.
 
 - [`localPostgres()`](https://ohdsi.github.io/OmopOnPostgres/reference/localPostgres.md)
   : This function creates a connection to the local postgres instance
+- [`mockPostgresCdmReference()`](https://ohdsi.github.io/OmopOnPostgres/reference/mockPostgresCdmReference.md)
+  : Mock Postgres CDM reference
