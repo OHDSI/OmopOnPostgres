@@ -1,12 +1,27 @@
 # OmopOnPostgres
 
+The goal of OmopOnPostgres is to facilitate working with data in the
+OMOP CDM format using a PostgreSQL database. The package:
+
+- **Supports multiple database clients:** Provides flexible approaches
+  for connecting R to PostgreSQLs.
+- **Simplifies database management:** Facilitates the creation,
+  deletion, and management of OMOP CDM schemas and tables directly from
+  18. 
+- **Ensures cross-platform compatibility:** Enables analytic R packages
+  to rely seamlessly on `dplyr`/`dbplyr`, supporting robust network
+  studies.
+- **Enhances performance:** Allows for PostgreSQL-specific optimisations
+  of analytic queries.
+
+## Supported drivers
+
 | Driver | Status (Ubuntu / macOS / Windows) |
 |:---|:---|
 | **RPostgres** | [![Ubuntu RPostgres](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-rpostgres.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-rpostgres.yaml) [![macOS RPostgres](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-rpostgres.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-rpostgres.yaml) [![Windows RPostgres](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-rpostgres.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-rpostgres.yaml) |
-| **adbc** | [![Ubuntu adbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-adbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-adbc.yaml) [![macOS adbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-adbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-adbc.yaml) [![Windows adbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-adbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-adbc.yaml) |
-| **odbc** | [![Ubuntu odbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-odbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-odbc.yaml) [![macOS odbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-odbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-odbc.yaml) [![Windows odbc](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-odbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-odbc.yaml) |
-
-The goal of OmopOnPostgres is to …
+| **ADBC** | [![Ubuntu ADBC](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-adbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-adbc.yaml) [![macOS ADBC](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-adbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-adbc.yaml) [![Windows ADBC](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-adbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-adbc.yaml) |
+| **ODBC** | [![Ubuntu ODBC](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-odbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-odbc.yaml) [![macOS ODBC](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-odbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-odbc.yaml) [![Windows ODBC](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-odbc.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-odbc.yaml) |
+| **DatabaseConnector** | [![Ubuntu DatabaseConnector](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-databaseconnector.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-databaseconnector.yaml) [![macOS DatabaseConnector](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-databaseconnector.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-databaseconnector.yaml) [![Windows DatabaseConnector](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-databaseconnector.yaml/badge.svg)](https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-databaseconnector.yaml) |
 
 ## Installation
 
@@ -24,4 +39,14 @@ devtools::install_github("ohdsi/OmopOnPostgres")
 ``` r
 
 library(OmopOnPostgres)
+library(OmopSketch)
+cdm <- mockPostgresCdmReference(client = "RPostgres", 
+                                datasetName = "GiBleed")
+#> ℹ Loading bundled GiBleed tables from package data.
+#> ℹ Adding drug_strength table.
+#> ℹ Creating local <cdm_reference> object.
+summariseOmopSnapshot(cdm) |> 
+  tableOmopSnapshot(type = "flextable")
 ```
+
+![](reference/figures/README-unnamed-chunk-2-1.png)

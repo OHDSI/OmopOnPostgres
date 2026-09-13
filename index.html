@@ -54,6 +54,23 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="omoponpostgres">OmopOnPostgres<a class="anchor" aria-label="anchor" href="#omoponpostgres"></a>
 </h1></div>
+<p>The goal of OmopOnPostgres is to facilitate working with data in the OMOP CDM format using a PostgreSQL database. The package:</p>
+<ul>
+<li>
+<strong>Supports multiple database clients:</strong> Provides flexible approaches for connecting R to PostgreSQLs.</li>
+<li>
+<strong>Simplifies database management:</strong> Facilitates the creation, deletion, and management of OMOP CDM schemas and tables directly from
+<ol start="18" style="list-style-type: upper-alpha"><li>
+</li></ol>
+</li>
+<li>
+<strong>Ensures cross-platform compatibility:</strong> Enables analytic R packages to rely seamlessly on <code>dplyr</code>/<code>dbplyr</code>, supporting robust network studies.</li>
+<li>
+<strong>Enhances performance:</strong> Allows for PostgreSQL-specific optimisations of analytic queries.</li>
+</ul>
+<div class="section level2">
+<h2 id="supported-drivers">Supported drivers<a class="anchor" aria-label="anchor" href="#supported-drivers"></a>
+</h2>
 <table class="table">
 <colgroup>
 <col width="50%">
@@ -71,20 +88,26 @@
 </td>
 </tr>
 <tr>
-<td align="left"><strong>adbc</strong></td>
+<td align="left"><strong>ADBC</strong></td>
 <td align="left">
-<a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-adbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-adbc.yaml/badge.svg" alt="Ubuntu adbc"></a> <a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-adbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-adbc.yaml/badge.svg" alt="macOS adbc"></a> <a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-adbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-adbc.yaml/badge.svg" alt="Windows adbc"></a>
+<a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-adbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-adbc.yaml/badge.svg" alt="Ubuntu ADBC"></a> <a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-adbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-adbc.yaml/badge.svg" alt="macOS ADBC"></a> <a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-adbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-adbc.yaml/badge.svg" alt="Windows ADBC"></a>
 </td>
 </tr>
 <tr>
-<td align="left"><strong>odbc</strong></td>
+<td align="left"><strong>ODBC</strong></td>
 <td align="left">
-<a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-odbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-odbc.yaml/badge.svg" alt="Ubuntu odbc"></a> <a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-odbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-odbc.yaml/badge.svg" alt="macOS odbc"></a> <a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-odbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-odbc.yaml/badge.svg" alt="Windows odbc"></a>
+<a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-odbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-odbc.yaml/badge.svg" alt="Ubuntu ODBC"></a> <a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-odbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-odbc.yaml/badge.svg" alt="macOS ODBC"></a> <a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-odbc.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-odbc.yaml/badge.svg" alt="Windows ODBC"></a>
+</td>
+</tr>
+<tr>
+<td align="left"><strong>DatabaseConnector</strong></td>
+<td align="left">
+<a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-databaseconnector.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/ubuntu-databaseconnector.yaml/badge.svg" alt="Ubuntu DatabaseConnector"></a> <a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-databaseconnector.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/macos-databaseconnector.yaml/badge.svg" alt="macOS DatabaseConnector"></a> <a href="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-databaseconnector.yaml" class="external-link"><img src="https://github.com/OHDSI/OmopOnPostgres/actions/workflows/windows-databaseconnector.yaml/badge.svg" alt="Windows DatabaseConnector"></a>
 </td>
 </tr>
 </tbody>
 </table>
-<p>The goal of OmopOnPostgres is to …</p>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -97,7 +120,16 @@
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/OmopOnPostgres">OmopOnPostgres</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/OmopOnPostgres">OmopOnPostgres</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://OHDSI.github.io/OmopSketch/" class="external-link">OmopSketch</a></span><span class="op">)</span></span>
+<span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/mockPostgresCdmReference.html">mockPostgresCdmReference</a></span><span class="op">(</span>client <span class="op">=</span> <span class="st">"RPostgres"</span>, </span>
+<span>                                datasetName <span class="op">=</span> <span class="st">"GiBleed"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ℹ Loading bundled GiBleed tables from package data.</span></span>
+<span><span class="co">#&gt; ℹ Adding drug_strength table.</span></span>
+<span><span class="co">#&gt; ℹ Creating local &lt;cdm_reference&gt; object.</span></span>
+<span><span class="fu"><a href="https://OHDSI.github.io/OmopSketch/reference/summariseOmopSnapshot.html" class="external-link">summariseOmopSnapshot</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://OHDSI.github.io/OmopSketch/reference/tableOmopSnapshot.html" class="external-link">tableOmopSnapshot</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"flextable"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-2-1.png" alt="" width="100%"></p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
