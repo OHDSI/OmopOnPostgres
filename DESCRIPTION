@@ -35,7 +35,9 @@ Suggests:
     testthat (>= 3.0.0),
     tictoc,
     CohortCharacteristics,
-    CDMConnector
+    CDMConnector,
+    OmopSketch,
+    flextable
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends: 
