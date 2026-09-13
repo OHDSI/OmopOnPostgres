@@ -6,7 +6,7 @@ on:
 
 jobs:
   check:
-    name: Ubuntu DatabaseConnector Tests
+    name: Ubuntu DatabaseConnector
     runs-on: ubuntu-latest
 
     env:
@@ -48,6 +48,20 @@ jobs:
       - name: Configure Java for R
         run: sudo R CMD javareconf
 
+      - name: Install adbc and adbi from R-Universe
+        run: |
+          try(install.packages(
+            c("adbcdrivermanager", "adbcpostgresql"),
+            repos = c(CRAN = "https://cloud.r-project.org", ADBC = "https://apache.r-universe.dev")
+          ))
+          try(install.packages(
+            "adbi",
+            repos = c(CRAN = "https://cloud.r-project.org", RDBI = "https://r-dbi.r-universe.dev")
+          ))
+          writeLines(paste0("adbcpostgresql available: ", requireNamespace("adbcpostgresql", quietly = TRUE)))
+          writeLines(paste0("adbi available: ", requireNamespace("adbi", quietly = TRUE)))
+        shell: Rscript {0}
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck, any::DatabaseConnector
@@ -59,3 +73,6 @@ jobs:
           Rscript -e "DatabaseConnector::downloadJdbcDrivers('postgresql')"
 
       - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          build_args: "c(\"--no-manual\",\"--compact-vignettes=gs+qpdf\")"
