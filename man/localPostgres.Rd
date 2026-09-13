@@ -7,7 +7,7 @@
 localPostgres(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres"))
 }
 \arguments{
-\item{client}{Client}
+\item{client}{Client. Can be "RPostgres", "adbc", "odbc", or "DatabaseConnector".}
 }
 \value{
 A connection to your postgres local instance

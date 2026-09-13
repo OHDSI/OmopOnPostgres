@@ -1,0 +1,41 @@
+jobs:
+  check:
+    name: Windows DatabaseConnector
+    runs-on: windows-latest
+
+    env:
+      DATABASECONNECTOR_JAR_FOLDER: ${{ github.workspace }}/jdbc_drivers
+      OMOP_POSTGRES_CONNECTOR_HOST: localhost
+      OMOP_POSTGRES_CONNECTOR_DB: postgres
+      OMOP_POSTGRES_CONNECTOR_USER: postgres
+      OMOP_POSTGRES_CONNECTOR_PASSWORD: postgres
+      OMOP_POSTGRES_CONNECTOR_PORT: 5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install and start PostgreSQL
+        run: choco install postgresql --force --params '/Password:postgres'
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck, any::DatabaseConnector
+          needs: check
+
+      - name: Download PostgreSQL JDBC Driver
+        shell: bash
+        run: |
+          mkdir -p ${{ env.DATABASECONNECTOR_JAR_FOLDER }}
+          Rscript -e "DatabaseConnector::downloadJdbcDrivers('postgresql')"
+
+      - uses: r-lib/actions/check-r-package@v2

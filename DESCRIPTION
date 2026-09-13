@@ -22,7 +22,8 @@ Imports:
     rlang,
     stringr,
     adbi,
-    odbc
+    odbc,
+    DatabaseConnector
 Suggests: 
     bit64,
     adbcpostgresql,

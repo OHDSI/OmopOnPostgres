@@ -60,6 +60,9 @@ getJobs.AdbiConnection <- getJobs.PqConnection
 #' @export
 getJobs.PostgreSQL <- getJobs.PqConnection
 
+#' @export
+getJobs.DatabaseConnectorJdbcConnection <- getJobs.PqConnection
+
 #' Cancel a Postgres job.
 #'
 #' @param src It can either be a cdm_reference, a postgres_source or a
@@ -112,6 +115,8 @@ cancelJob.AdbiConnection <- cancelJob.PqConnection
 #' @export
 cancelJob.PostgreSQL <- cancelJob.PqConnection
 
+#' @export
+cancelJob.DatabaseConnectorJdbcConnection <- cancelJob.PqConnection
 
 
 
@@ -154,7 +159,7 @@ getUserTables.PqConnection <- function(src, schema = "public", user = NULL) {
   }
 
   dplyr::collect(x) |>
-    dplyr::pull(tablename)
+    dplyr::pull("tablename")
 }
 
 #' @export
@@ -165,3 +170,6 @@ getUserTables.PostgreSQL <- getUserTables.PqConnection
 
 #' @export
 getUserTables.OdbcConnection <- getUserTables.PqConnection
+
+#' @export
+getUserTables.DatabaseConnectorJdbcConnection <- getUserTables.PqConnection
