@@ -22,7 +22,7 @@ localPostgres(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres"))
 
 - client:
 
-  Client
+  Client. Can be "RPostgres", "adbc", "odbc", or "DatabaseConnector".
 
 ## Value
 
