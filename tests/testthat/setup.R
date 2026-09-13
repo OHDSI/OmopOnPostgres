@@ -19,9 +19,8 @@ dropCdm <- function(cdm) {
 }
 deleteAllTables <- function() {
   con <- localPostgres()
-  DBI::dbExecute(
-    conn = con,
-    statement = "DO
+
+  statement <- "DO
     $$
     DECLARE
         r RECORD;
@@ -35,6 +34,22 @@ deleteAllTables <- function() {
         END LOOP;
     END
     $$;"
-  )
+
+  is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+
+  if (is_dbc) {
+    DatabaseConnector::executeSql(
+      connection = con,
+      sql = statement,
+      progressBar = FALSE,
+      reportOverallTime = FALSE
+    )
+  } else {
+    DBI::dbExecute(
+      conn = con,
+      statement = statement
+    )
+  }
+
   DBI::dbDisconnect(conn = con)
 }

@@ -1,4 +1,3 @@
-
 #' Title
 #'
 #' @param con A PqConnection created with DBI and RPostgres.
@@ -26,6 +25,8 @@ createOmopTablesOnPostgres <- function(con,
   omopgenerics::assertLogical(x = bigInt, length = 1)
   cdmPrefix <- validatePrefix(prefix = cdmPrefix)
 
+  is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+
   # tables to create
   fields <- postgresDatatypes[[cdmVersion]] |>
     dplyr::filter(.data$type == "cdm_table")
@@ -50,7 +51,12 @@ createOmopTablesOnPostgres <- function(con,
       if (overwrite) {
         fn <- formatNamePostgres(schema = cdmSchema, prefix = cdmPrefix, name = nm)
         st <- paste0("DROP TABLE IF EXISTS ", fn, ";")
-        DBI::dbExecute(conn = con, statement = st)
+
+        if (is_dbc) {
+          DatabaseConnector::executeSql(connection = con, sql = st, progressBar = FALSE, reportOverallTime = FALSE)
+        } else {
+          DBI::dbExecute(conn = con, statement = st)
+        }
       } else {
         create <- FALSE
         cli::cli_inform(c(x = "Table {.pkg {nm}} could not be created because it already exists and overwrite is {.emph FALSE}."))
@@ -61,13 +67,20 @@ createOmopTablesOnPostgres <- function(con,
         dplyr::filter(.data$cdm_table_name == .env$nm)
       fn <- formatNamePostgres(schema = cdmSchema, prefix = cdmPrefix, name = nm)
       st <- createStatement(name = fn, cols = cols)
-      DBI::dbExecute(conn = con, statement = st)
+
+      if (is_dbc) {
+        DatabaseConnector::executeSql(connection = con, sql = st, progressBar = FALSE, reportOverallTime = FALSE)
+      } else {
+        DBI::dbExecute(conn = con, statement = st)
+      }
+
       cli::cli_inform(c(v = "Table {.pkg {nm}} created succesfully."))
     }
   }
 
   invisible()
 }
+
 createStatement <- function(name, cols) {
   cols <- purrr::map_chr(seq_along(cols$cdm_field_name), \(k) {
     cfn <- cols$cdm_field_name[k]
