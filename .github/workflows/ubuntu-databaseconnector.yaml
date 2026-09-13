@@ -16,6 +16,7 @@ jobs:
       OMOP_POSTGRES_CONNECTOR_USER: postgres
       OMOP_POSTGRES_CONNECTOR_PASSWORD: postgres
       OMOP_POSTGRES_CONNECTOR_PORT: 5432
+      TEST_PG_DRIVER: DatabaseConnector
 
     services:
       postgres:
