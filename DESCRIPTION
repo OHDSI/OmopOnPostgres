@@ -31,7 +31,8 @@ Suggests:
     omock,
     rmarkdown,
     RPostgres,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tictoc
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends: 
