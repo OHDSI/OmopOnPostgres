@@ -15,7 +15,15 @@ for (drv in get_test_drivers()) {
 
   expect_message(cancelJob(pcdm, 123456789))
 
+  expect_no_error(tb <- getUserTables(pcdm, schema = "public"))
+  expect_true(length(tb) > 0)
+
+  user <- Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", "omop_postgres_connector")
+  expect_no_error(getUserTables(src = pcdm, schema = "public", user = user))
+  expect_no_error(tb_2 <- getUserTables(src = pcdm, schema = "public", user = "somebody_else"))
+  expect_true(length(tb_2) == 0)
+
   dropCdm(pcdm)
-})
+  })
 
 }

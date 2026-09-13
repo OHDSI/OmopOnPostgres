@@ -111,3 +111,57 @@ cancelJob.AdbiConnection <- cancelJob.PqConnection
 
 #' @export
 cancelJob.PostgreSQL <- cancelJob.PqConnection
+
+
+
+
+#' Get tables created by a user in a schema.
+#'
+#' @param src It can either be a cdm_reference, a postgres_source or a
+#' DBI connection object.
+#' @param schema Character. The schema to search in.
+#' @param user Character. Users to filter by. If NULL no filter is applied.
+#'
+#' @return Tibble with the identified tables.
+#' @export
+getUserTables <- function(src, schema = "public", user = NULL) {
+  UseMethod("getUserTables")
+}
+
+#' @export
+getUserTables.cdm_reference <- function(src, schema = "public", user = NULL) {
+  getUserTables(src = omopgenerics::cdmSource(x = src), schema = schema, user = user)
+}
+
+#' @export
+getUserTables.pq_cdm <- function(src, schema = "public", user = NULL) {
+  getUserTables(src = getCon(src = src), schema = schema, user = user)
+}
+
+#' @export
+getUserTables.PqConnection <- function(src, schema = "public", user = NULL) {
+  omopgenerics::assertCharacter(schema, length = 1)
+  omopgenerics::assertCharacter(user, null = TRUE)
+
+  rlang::local_options(nanoarrow.warn_unregistered_extension = FALSE)
+
+  x <- dplyr::tbl(src, I("pg_tables")) |>
+    dplyr::filter(.data$schemaname == .env$schema)
+
+  if (!is.null(user)) {
+    x <- x |>
+      dplyr::filter(.data$tableowner %in% .env$user)
+  }
+
+  dplyr::collect(x) |>
+    dplyr::pull(tablename)
+}
+
+#' @export
+getUserTables.AdbiConnection <- getUserTables.PqConnection
+
+#' @export
+getUserTables.PostgreSQL <- getUserTables.PqConnection
+
+#' @export
+getUserTables.OdbcConnection <- getUserTables.PqConnection

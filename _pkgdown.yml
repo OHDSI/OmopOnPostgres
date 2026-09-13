@@ -25,6 +25,7 @@ reference:
     contents:
       - getJobs
       - cancelJob
+      - getUserTables
 
   - title: "Index mangement"
     desc: "Create and check existing indexes."
