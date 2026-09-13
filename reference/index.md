@@ -30,6 +30,8 @@ Cancel and manage jobs.
   : Get ongoing Postgres jobs.
 - [`cancelJob()`](https://ohdsi.github.io/OmopOnPostgres/reference/cancelJob.md)
   : Cancel a Postgres job.
+- [`getUserTables()`](https://ohdsi.github.io/OmopOnPostgres/reference/getUserTables.md)
+  : Get tables created by a user in a schema.
 
 ## Index mangement
 
