@@ -352,10 +352,13 @@ computeTable <- function(src, type, name, sql, jobName) {
   invisible(TRUE)
 }
 dropTable <- function(src, type, name, callFrom = "drop_table") {
+  con <- getCon(src = src)
+  is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+
   for (nm in name) {
     # create sql
-    nm <- formatName(src = src, name = nm, type = type)
-    st <- paste0("DROP TABLE IF EXISTS ", nm, ";")
+    nm_formatted <- formatName(src = src, name = nm, type = type)
+    st <- paste0("DROP TABLE IF EXISTS ", nm_formatted, ";")
 
     # whether to log
     toLog <- logSql()
@@ -363,7 +366,7 @@ dropTable <- function(src, type, name, callFrom = "drop_table") {
     # create log file
     if (toLog) {
       logName <- startLogger(
-        jobName = paste0("DROP TABLE ", nm, " (", type, ")"),
+        jobName = paste0("DROP TABLE ", nm_formatted, " (", type, ")"),
         jobType = "drop_table",
         callFrom = callFrom,
         sql = extractSql(sql = st),
@@ -371,8 +374,17 @@ dropTable <- function(src, type, name, callFrom = "drop_table") {
       )
     }
 
-    # drop table
-    DBI::dbExecute(conn = getCon(src = src), statement = st)
+    # drop table natively for DatabaseConnector, or via DBI for others
+    if (is_dbc) {
+      DatabaseConnector::executeSql(
+        connection = con,
+        sql = st,
+        progressBar = FALSE,
+        reportOverallTime = FALSE
+      )
+    } else {
+      DBI::dbExecute(conn = con, statement = st)
+    }
 
     # finish logger
     if (toLog) {
