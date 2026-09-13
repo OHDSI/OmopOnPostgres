@@ -19,22 +19,33 @@ dropCdm <- function(cdm) {
 }
 deleteAllTables <- function() {
   con <- localPostgres()
-  DBI::dbExecute(
-    conn = con,
-    statement = "DO
-    $$
-    DECLARE
-        r RECORD;
-    BEGIN
-        FOR r IN
-            SELECT schemaname, tablename
-            FROM pg_tables
-            WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
-        LOOP
-            EXECUTE format('DROP TABLE IF EXISTS %I.%I CASCADE;', r.schemaname, r.tablename);
-        END LOOP;
-    END
-    $$;"
-  )
+  is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+
+  st <- "SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
+
+  if (is_dbc) {
+    tables <- DatabaseConnector::querySql(connection = con, sql = st)
+    names(tables) <- tolower(names(tables))
+  } else {
+    tables <- DBI::dbGetQuery(conn = con, statement = st)
+  }
+
+  if (nrow(tables) > 0) {
+    for (i in seq_len(nrow(tables))) {
+      drop_st <- sprintf('DROP TABLE IF EXISTS "%s"."%s" CASCADE;', tables$schemaname[i], tables$tablename[i])
+
+      if (is_dbc) {
+        DatabaseConnector::executeSql(
+          connection = con,
+          sql = drop_st,
+          progressBar = FALSE,
+          reportOverallTime = FALSE
+        )
+      } else {
+        DBI::dbExecute(conn = con, statement = drop_st)
+      }
+    }
+  }
+
   DBI::dbDisconnect(conn = con)
 }

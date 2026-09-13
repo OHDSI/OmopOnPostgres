@@ -8,7 +8,7 @@
 #' * user = `OMOP_POSTGRES_CONNECTOR_USER`
 #' * password = `OMOP_POSTGRES_CONNECTOR_PASSWORD`
 #'
-#' @param client Client
+#' @param client Client. Can be "RPostgres", "adbc", "odbc", or "DatabaseConnector".
 #' @return A connection to your postgres local instance
 #' @export
 #'
@@ -61,10 +61,28 @@ localPostgres <- function(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres")) {
       pwd = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", "")
     )
 
+  } else if (client == "DatabaseConnector") {
+
+    server_string <- sprintf(
+      "%s/%s",
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_HOST", "localhost"),
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres")
+    )
+
+    DatabaseConnector::connect(
+      dbms = "postgresql",
+      server = server_string,
+      user = Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", Sys.getenv("USER")),
+      password = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", ""),
+      port = Sys.getenv("OMOP_POSTGRES_CONNECTOR_PORT", "5432"),
+      pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER")
+    )
+
   } else {
     cli::cli_abort("{client} not supported")
   }
 }
+
 #' Create a postgres source object
 #'
 #' @inheritParams pqSourceDoc
@@ -334,10 +352,13 @@ computeTable <- function(src, type, name, sql, jobName) {
   invisible(TRUE)
 }
 dropTable <- function(src, type, name, callFrom = "drop_table") {
+  con <- getCon(src = src)
+  is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+
   for (nm in name) {
     # create sql
-    nm <- formatName(src = src, name = nm, type = type)
-    st <- paste0("DROP TABLE IF EXISTS ", nm, ";")
+    nm_formatted <- formatName(src = src, name = nm, type = type)
+    st <- paste0("DROP TABLE IF EXISTS ", nm_formatted, ";")
 
     # whether to log
     toLog <- logSql()
@@ -345,7 +366,7 @@ dropTable <- function(src, type, name, callFrom = "drop_table") {
     # create log file
     if (toLog) {
       logName <- startLogger(
-        jobName = paste0("DROP TABLE ", nm, " (", type, ")"),
+        jobName = paste0("DROP TABLE ", nm_formatted, " (", type, ")"),
         jobType = "drop_table",
         callFrom = callFrom,
         sql = extractSql(sql = st),
@@ -353,8 +374,17 @@ dropTable <- function(src, type, name, callFrom = "drop_table") {
       )
     }
 
-    # drop table
-    DBI::dbExecute(conn = getCon(src = src), statement = st)
+    # drop table natively for DatabaseConnector, or via DBI for others
+    if (is_dbc) {
+      DatabaseConnector::executeSql(
+        connection = con,
+        sql = st,
+        progressBar = FALSE,
+        reportOverallTime = FALSE
+      )
+    } else {
+      DBI::dbExecute(conn = con, statement = st)
+    }
 
     # finish logger
     if (toLog) {
@@ -439,24 +469,58 @@ writeTable <- function(src, name, value, type) {
     )
   }
 
-  # insert table
-  if (DBI::dbExistsTable(con, idn)) {
-    DBI::dbRemoveTable(con, idn)
-  }
   problem_types <- c("DOUBLE", "NUMERIC", "DECIMAL", "FLOAT")
   colTypes[toupper(colTypes) %in% problem_types] <- "DOUBLE PRECISION"
-  DBI::dbCreateTable(
-    conn = con,
-    name = idn,
-    fields = colTypes,
-    temporary = type == "temp"
-  )
-  if (nrow(value) > 0) {
-  DBI::dbAppendTable(
-    conn = con,
-    name = idn,
-    value = value
-  )
+
+  is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+  if (is_dbc) {
+    DatabaseConnector::executeSql(
+      connection = con,
+      sql = paste0("DROP TABLE IF EXISTS ", fn, ";"),
+      progressBar = FALSE,
+      reportOverallTime = FALSE
+    )
+    quoted_cols <- paste0('"', names(colTypes), '"')
+    col_defs <- paste(quoted_cols, colTypes, collapse = ", ")
+
+    temp_kw <- if (type == "temp") "TEMP " else ""
+    create_sql <- sprintf("CREATE %sTABLE %s (%s);", temp_kw, fn, col_defs)
+
+    DatabaseConnector::executeSql(
+      connection = con,
+      sql = create_sql,
+      progressBar = FALSE,
+      reportOverallTime = FALSE
+    )
+    if (nrow(value) > 0) {
+      DatabaseConnector::insertTable(
+        connection = con,
+        tableName = fn,
+        data = as.data.frame(value),
+        dropTableIfExists = FALSE,
+        createTable = FALSE,
+        camelCaseToSnakeCase = FALSE
+      )
+    }
+  } else {
+    if (DBI::dbExistsTable(con, idn)) {
+      DBI::dbRemoveTable(con, idn)
+    }
+
+    DBI::dbCreateTable(
+      conn = con,
+      name = idn,
+      fields = colTypes,
+      temporary = type == "temp"
+    )
+
+    if (nrow(value) > 0) {
+      DBI::dbAppendTable(
+        conn = con,
+        name = idn,
+        value = value
+      )
+    }
   }
 
   # finish log
@@ -518,10 +582,19 @@ IdName <- function(src, name, type) {
   }
 }
 validateCon <- function(con, call = parent.frame()) {
-  if (!inherits(con, c("PqConnection", "AdbiConnection", "PostgreSQL"))) {
+  allowed_classes <- c(
+    "PqConnection",
+    "AdbiConnection",
+    "PostgreSQL",
+    "DatabaseConnectorConnection",
+    "DatabaseConnectorDbiConnection"
+  )
+
+  if (!inherits(con, allowed_classes)) {
     c(x = "`con` is not supported") |>
       cli::cli_abort(call = call)
   }
+
   if (!DBI::dbIsValid(con)) {
     cli::cli_abort(c(x = "Connection is no longer valid."),
                    call = call)

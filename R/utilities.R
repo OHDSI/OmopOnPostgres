@@ -1,10 +1,35 @@
 
 createSchema <- function(con, schema) {
-  DBI::dbExecute(conn = con, statement = paste0("CREATE SCHEMA ", schema))
+  st <- paste0("CREATE SCHEMA ", schema)
+  is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+
+  if (is_dbc) {
+    DatabaseConnector::executeSql(
+      connection = con,
+      sql = st,
+      progressBar = FALSE,
+      reportOverallTime = FALSE
+    )
+  } else {
+    DBI::dbExecute(conn = con, statement = st)
+  }
   invisible(con)
 }
+
 deleteSchema <- function(con, schema) {
-  DBI::dbExecute(conn = con, statement = paste0("DROP SCHEMA ", schema))
+  st <- paste0("DROP SCHEMA ", schema)
+  is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+
+  if (is_dbc) {
+    DatabaseConnector::executeSql(
+      connection = con,
+      sql = st,
+      progressBar = FALSE,
+      reportOverallTime = FALSE
+    )
+  } else {
+    DBI::dbExecute(conn = con, statement = st)
+  }
   invisible(con)
 }
 schemaExists <- function(con, schema) {
