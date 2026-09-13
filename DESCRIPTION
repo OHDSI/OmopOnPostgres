@@ -26,6 +26,7 @@ Imports:
 Suggests: 
     bit64,
     adbcpostgresql,
+    CohortConstructor,
     knitr,
     omock,
     rmarkdown,
