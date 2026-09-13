@@ -56,3 +56,4 @@ reference:
     desc: "Create a local postgres connection using environmental variables."
     contents:
       - localPostgres
+      - mockPostgresCdmReference
