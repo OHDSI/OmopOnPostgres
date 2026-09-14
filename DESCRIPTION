@@ -23,7 +23,8 @@ Imports:
     stringr,
     adbi,
     odbc,
-    DatabaseConnector
+    DatabaseConnector,
+    tidyr
 Suggests: 
     bit64,
     adbcpostgresql,
