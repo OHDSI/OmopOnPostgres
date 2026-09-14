@@ -57,3 +57,8 @@ reference:
     contents:
       - localPostgres
       - mockPostgresCdmReference
+
+  - title: "Benchmark postgres"
+    desc: "Assess time to collect from and insert data into a postgres cdm reference"
+    contents:
+      - benchmarkOmopOnPostgres
