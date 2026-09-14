@@ -24,7 +24,8 @@ Imports:
     adbi,
     odbc,
     DatabaseConnector,
-    tidyr
+    tidyr,
+    tibble
 Suggests: 
     bit64,
     adbcpostgresql,
@@ -39,7 +40,10 @@ Suggests:
     CDMConnector,
     OmopSketch,
     flextable,
-    DBI
+    DBI,
+    sessioninfo,
+    ps,
+    benchmarkme
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends: 

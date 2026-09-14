@@ -308,6 +308,11 @@ readSourceTable.pq_cdm <- function(cdm, name) {
 
 #' @export
 summary.pq_cdm <- function(object, ...) {
+
+  rlang::check_installed("benchmarkme")
+  rlang::check_installed("ps")
+  rlang::check_installed("sessioninfo")
+
   version <- as.character(utils::packageVersion(pkg = "OmopOnPostgres"))
   r_infra <- as.list(tibble::deframe(rInfra()))
   postgres_infra <- as.list(tibble::deframe(postgresInfra(attr(object,"pq_con"))))
