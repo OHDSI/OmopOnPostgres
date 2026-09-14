@@ -38,7 +38,8 @@ Suggests:
     CohortCharacteristics,
     CDMConnector,
     OmopSketch,
-    flextable
+    flextable,
+    DBI
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends: 
