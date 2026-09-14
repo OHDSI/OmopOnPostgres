@@ -372,8 +372,6 @@ postgresInfra <- function(con) {
   query <- "
     SELECT 'PostgreSQL Version' AS metric, version() AS value
     UNION ALL
-    SELECT 'Database Size', pg_size_pretty(pg_database_size(current_database()))
-    UNION ALL
     SELECT
       name AS metric,
       current_setting(name) AS value
