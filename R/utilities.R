@@ -1,7 +1,13 @@
 
-createSchema <- function(con, schema) {
-  st <- paste0("CREATE SCHEMA ", schema)
+dropSchema <- function(con, schema) {
   is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+  is_duckdb <- inherits(con, "duckdb_connection")
+
+  if (is_duckdb) {
+    st <- sprintf("CALL postgres_execute('pg_db', 'DROP SCHEMA IF EXISTS %s CASCADE');", schema)
+  } else {
+    st <- sprintf("DROP SCHEMA IF EXISTS %s CASCADE;", schema)
+  }
 
   if (is_dbc) {
     DatabaseConnector::executeSql(
@@ -13,7 +19,31 @@ createSchema <- function(con, schema) {
   } else {
     DBI::dbExecute(conn = con, statement = st)
   }
-  invisible(con)
+
+  invisible(schema)
+}
+createSchema <- function(con, schema) {
+  is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+  is_duckdb <- inherits(con, "duckdb_connection")
+
+  if (is_duckdb) {
+    st <- sprintf("CALL postgres_execute('pg_db', 'CREATE SCHEMA IF NOT EXISTS %s');", schema)
+  } else {
+    st <- sprintf("CREATE SCHEMA IF NOT EXISTS %s;", schema)
+  }
+
+  if (is_dbc) {
+    DatabaseConnector::executeSql(
+      connection = con,
+      sql = st,
+      progressBar = FALSE,
+      reportOverallTime = FALSE
+    )
+  } else {
+    DBI::dbExecute(conn = con, statement = st)
+  }
+
+  invisible(schema)
 }
 
 #' Reset Postgres schemas to a completely blank state
@@ -49,9 +79,19 @@ resetSchemas <- function() {
   invisible(TRUE)
 }
 schemaExists <- function(con, schema) {
-  x <- dplyr::tbl(con, I("information_schema.schemata")) |>
+  is_duckdb <- inherits(con, "duckdb_connection")
+
+  if (is_duckdb) {
+    remote_query <- dplyr::sql("SELECT * FROM postgres_query('pg_db', 'SELECT schema_name FROM information_schema.schemata')")
+    x <- dplyr::tbl(con, remote_query)
+  } else {
+    x <- dplyr::tbl(con, I("information_schema.schemata"))
+  }
+
+  x <- x |>
     dplyr::filter(.data$schema_name %in% .env$schema) |>
     dplyr::collect()
+
   nrow(x) > 0
 }
 question <- function(message, .envir = parent.frame()) {

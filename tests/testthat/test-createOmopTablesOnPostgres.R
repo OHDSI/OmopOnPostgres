@@ -2,13 +2,14 @@ for (drv in get_test_drivers()) {
 
 test_that(sprintf("test you can create empty table using %s", drv), {
   skip_on_cran()
-  withr::defer(resetSchemas())
 
   # delete tables
   deleteAllTables()
 
   # create connection
   con <- localPostgres(client = drv)
+  withr::defer(DBI::dbDisconnect(conn = con))
+  withr::defer(resetSchemas())
 
   # all tables to be created
   allTables <- omopgenerics::omopTableFields(cdmVersion = "5.4") |>
@@ -103,7 +104,6 @@ test_that(sprintf("test you can create empty table using %s", drv), {
       bit64::is.integer64()
   )
 
-  DBI::dbDisconnect(conn = con)
   deleteAllTables()
   })
 

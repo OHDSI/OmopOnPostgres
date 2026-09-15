@@ -44,7 +44,8 @@ Suggests:
     ps,
     benchmarkme,
     scales,
-    duckdb
+    duckdb,
+    withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends: 
