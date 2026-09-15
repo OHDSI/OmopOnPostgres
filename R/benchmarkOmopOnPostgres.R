@@ -17,8 +17,15 @@ benchmarkOmopOnPostgres <- function(cdm, n_iterations = 1){
                               length = 1,
                               min = 1)
 
+  n_person <- cdm$person |>
+    dplyr::tally() |>
+    dplyr::pull("n") |>
+    as.numeric() |>
+    scales::comma()
+
   for(i in seq_along(1:n_iterations)){
-  tictoc::tic(msg = paste0("Collecting person table: ", i))
+  cli::cli_inform(paste0("Running benchmark iteration ", i))
+  tictoc::tic(msg = paste0("Collecting person table (", n_person," rows): ", i))
   cdm$person |>
     dplyr::collect()
   tictoc::toc(log = TRUE)
@@ -67,7 +74,7 @@ getTimes <- function(log, cdm) {
         ),
         cdm_name = omopgenerics::cdmName(cdm),
         result_id = 1L,
-        estimate_name = "time (seconds)",
+        estimate_name = "time_seconds",
         estimate_type = "numeric"
       ) |>
       omopgenerics::uniteStrata() |>
