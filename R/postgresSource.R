@@ -98,6 +98,8 @@ localPostgres <- function(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres")) {
     attach_query <- sprintf("ATTACH '%s' AS pg_db (TYPE postgres);", uri_string)
     DBI::dbExecute(con_duck, attach_query)
     DBI::dbExecute(con_duck, "USE pg_db;")
+    DBI::dbExecute(con_duck, "SELECT postgres_query('pg_db', 'CREATE SCHEMA IF NOT EXISTS public');")
+    DBI::dbExecute(con_duck, "SELECT postgres_query('pg_db', 'CREATE SCHEMA IF NOT EXISTS results');")
 
     con_duck
 
