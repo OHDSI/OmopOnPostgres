@@ -394,34 +394,52 @@ rInfra <- function() {
 }
 
 postgresInfra <- function(con) {
+  is_duckdb <- inherits(con, "duckdb_connection")
 
-  # A single query returning key-value pairs of operational & analytic configs
-  query <- "
-    SELECT 'PostgreSQL Version' AS metric, version() AS value
-    UNION ALL
-    SELECT
-      name AS metric,
-      current_setting(name) AS value
-    FROM pg_settings
-    WHERE name IN (
-      -- Core Memory
-      'shared_buffers',
-      'work_mem',
-      'effective_cache_size',
+  if (is_duckdb) {
+    query <- "
+      SELECT * FROM postgres_query('pg_db', '
+        SELECT ''PostgreSQL Version'' AS metric, version() AS value
+        UNION ALL
+        SELECT
+          name AS metric,
+          setting AS value
+        FROM pg_settings
+        WHERE name IN (
+          ''shared_buffers'',
+          ''work_mem'',
+          ''effective_cache_size'',
+          ''max_parallel_workers_per_gather'',
+          ''max_parallel_workers'',
+          ''max_worker_processes'',
+          ''random_page_cost'',
+          ''effective_io_concurrency''
+        )
+      ') ORDER BY metric
+    "
+  } else {
+    query <- "
+      SELECT 'PostgreSQL Version' AS metric, version() AS value
+      UNION ALL
+      SELECT
+        name AS metric,
+        setting AS value
+      FROM pg_settings
+      WHERE name IN (
+        'shared_buffers',
+        'work_mem',
+        'effective_cache_size',
+        'max_parallel_workers_per_gather',
+        'max_parallel_workers',
+        'max_worker_processes',
+        'random_page_cost',
+        'effective_io_concurrency'
+      )
+      ORDER BY metric
+    "
+  }
 
-      -- Parallel Query Execution
-      'max_parallel_workers_per_gather',
-      'max_parallel_workers',
-      'max_worker_processes',
-
-      -- Disk & Optimizer Costing
-      'random_page_cost',
-      'effective_io_concurrency'
-    )
-    ORDER BY metric
-  "
-
-  res <-DBI::dbGetQuery(con, query)
+  res <- DBI::dbGetQuery(con, query)
 
   if (is.null(res) || nrow(res) == 0) {
     return(dplyr::tibble(metric = character(), value = character()))
@@ -429,7 +447,6 @@ postgresInfra <- function(con) {
 
   dplyr::as_tibble(res)
 }
-
 computeTable <- function(src, type, name, sql, jobName) {
   # create sql
   name <- formatName(src = src, name = name, type = type)
