@@ -4,12 +4,12 @@ The goal of OmopOnPostgres is to facilitate working with data in the
 OMOP CDM format using a PostgreSQL database. The package:
 
 - **Supports multiple database clients:** Provides flexible approaches
-  for connecting R to PostgreSQLs.
+  for connecting from R to PostgreSQLs.
 - **Simplifies database management:** Facilitates the creation,
   deletion, and management of OMOP CDM schemas and tables directly from
   18. 
 - **Ensures cross-platform compatibility:** Enables analytic R packages
-  to rely seamlessly on `dplyr`/`dbplyr`, supporting robust network
+  to reliably use `dplyr`/`dbplyr`, supporting cross-platform network
   studies.
 - **Enhances performance:** Allows for PostgreSQL-specific optimisations
   of analytic queries.
