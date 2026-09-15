@@ -553,7 +553,8 @@ listTablesPostgres <- function(con, schema, prefix) {
       purrr::keep(\(x) nchar(x) > 0)
   }
   return(x)
-}writeTable <- function(src, name, value, type) {
+}
+writeTable <- function(src, name, value, type) {
   vocab <- "5.4"
   # whether to log
   toLog <- logSql()
