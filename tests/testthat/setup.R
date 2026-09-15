@@ -20,8 +20,13 @@ dropCdm <- function(cdm) {
 deleteAllTables <- function() {
   con <- localPostgres()
   is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+  is_duckdb <- inherits(con, "duckdb_connection")
 
-  st <- "SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
+  if (is_duckdb) {
+    st <- "SELECT schemaname, tablename FROM postgres_query('pg_db', 'SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN (''pg_catalog'', ''information_schema'')');"
+  } else {
+    st <- "SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
+  }
 
   if (is_dbc) {
     tables <- DatabaseConnector::querySql(connection = con, sql = st)
@@ -32,7 +37,12 @@ deleteAllTables <- function() {
 
   if (nrow(tables) > 0) {
     for (i in seq_len(nrow(tables))) {
-      drop_st <- sprintf('DROP TABLE IF EXISTS "%s"."%s" CASCADE;', tables$schemaname[i], tables$tablename[i])
+
+      if (is_duckdb) {
+        drop_st <- sprintf("SELECT * FROM postgres_query('pg_db', 'DROP TABLE IF EXISTS \"%s\".\"%s\" CASCADE');", tables$schemaname[i], tables$tablename[i])
+      } else {
+        drop_st <- sprintf('DROP TABLE IF EXISTS "%s"."%s" CASCADE;', tables$schemaname[i], tables$tablename[i])
+      }
 
       if (is_dbc) {
         DatabaseConnector::executeSql(
