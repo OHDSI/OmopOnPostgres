@@ -54,7 +54,7 @@ getTimes <- function(log, cdm) {
       dplyr::select(-dplyr::all_of(c("tic", "toc", "callback_msg"))) |>
       dplyr::rename("variable_name" = "msg") |>
       tidyr::separate_wider_delim(
-        cols = variable_name,
+        cols = "variable_name",
         delim = ": ",
         names = c("variable_name", "group_level"),
       ) |>

@@ -24,6 +24,10 @@ for (drv in get_test_drivers()) {
   cdm$my_random_table <- dplyr::tibble(person_id = 1L, value = "xyz")
   expect_no_error(pq_cdm <- insertCdmTo(cdm = cdm, to = src))
 
+  # summary
+  expect_no_error(summ <- summary(omopgenerics::cdmSource(x = pq_cdm)))
+  expect_true(length(summ$work_mem) == 1)
+
   # disconnect
   expect_no_error(dropCdm(cdm = pq_cdm))
 })

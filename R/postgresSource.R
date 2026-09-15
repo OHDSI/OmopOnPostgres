@@ -308,7 +308,15 @@ readSourceTable.pq_cdm <- function(cdm, name) {
 
 #' @export
 summary.pq_cdm <- function(object, ...) {
+
+  rlang::check_installed("benchmarkme")
+  rlang::check_installed("ps")
+  rlang::check_installed("sessioninfo")
+
   version <- as.character(utils::packageVersion(pkg = "OmopOnPostgres"))
+  r_infra <- as.list(tibble::deframe(rInfra()))
+  postgres_infra <- as.list(tibble::deframe(postgresInfra(attr(object,"pq_con"))))
+c(
   list(
     package = paste0("OmopOnPostgres (", version, ")"),
     cdm_schema = attr(object, "cdm_schema"),
@@ -318,7 +326,86 @@ summary.pq_cdm <- function(object, ...) {
     achilles_schema = attr(object, "achilles_schema"),
     achilles_prefix = attr(object, "achilles_prefix")
   ) |>
-    purrr::compact()
+    purrr::compact(),
+  r_infra,
+  postgres_infra)
+}
+
+rInfra <- function() {
+
+  r_info <- sessioninfo::platform_info()
+  cpu_info <- benchmarkme::get_cpu()
+  ram_bytes <- as.numeric(benchmarkme::get_ram())
+  total_ram_gb <- paste(round(ram_bytes / (1024^3), 2), "GB")
+  mem_info <- ps::ps_system_memory()
+  available_ram_gb <- paste(round(mem_info$avail / (1024^3), 2), "GB")
+
+  check_val <- function(x) {
+    if (is.null(x) || length(x) == 0) "unknown" else as.character(x)
+  }
+
+  dplyr::tibble(
+    metric = c(
+      "Operating System",
+      "R Version",
+      "RStudio Version",
+      "Language",
+      "Collate",
+      "CPU Model",
+      "Number of Cores",
+      "Total System RAM",
+      "Currently Available RAM"
+    ),
+    value = c(
+      check_val(r_info$os),
+      check_val(r_info$version),
+      check_val(r_info$rstudio),
+      check_val(r_info$language),
+      check_val(r_info$collate),
+      check_val(cpu_info$model_name),
+      check_val(cpu_info$no_of_cores),
+      total_ram_gb,
+      available_ram_gb
+    )
+  )
+
+}
+
+postgresInfra <- function(con) {
+
+  # A single query returning key-value pairs of operational & analytic configs
+  query <- "
+    SELECT 'PostgreSQL Version' AS metric, version() AS value
+    UNION ALL
+    SELECT
+      name AS metric,
+      current_setting(name) AS value
+    FROM pg_settings
+    WHERE name IN (
+      -- Core Memory
+      'shared_buffers',
+      'work_mem',
+      'effective_cache_size',
+
+      -- Parallel Query Execution
+      'max_parallel_workers_per_gather',
+      'max_parallel_workers',
+      'max_worker_processes',
+
+      -- Disk & Optimizer Costing
+      'random_page_cost',
+      'effective_io_concurrency'
+    )
+    ORDER BY metric
+  "
+
+  res <-DBI::dbGetQuery(con, query)
+
+  if (is.null(res) || nrow(res) == 0) {
+    return(dplyr::tibble(metric = character(), value = character()))
+  }
+
+  dplyr::as_tibble(res)
 }
 
 computeTable <- function(src, type, name, sql, jobName) {
