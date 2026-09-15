@@ -26,6 +26,7 @@ createOmopTablesOnPostgres <- function(con,
   cdmPrefix <- validatePrefix(prefix = cdmPrefix)
 
   is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+  is_duckdb <- inherits(con, "duckdb_connection")
 
   # tables to create
   fields <- postgresDatatypes[[cdmVersion]] |>
@@ -50,8 +51,7 @@ createOmopTablesOnPostgres <- function(con,
     if (tableExists) {
       if (overwrite) {
         fn <- formatNamePostgres(schema = cdmSchema, prefix = cdmPrefix, name = nm)
-        st <- paste0("DROP TABLE IF EXISTS ", fn, ";")
-
+        st <- paste0("DROP TABLE IF EXISTS ", fn, " CASCADE;")
         if (is_dbc) {
           DatabaseConnector::executeSql(connection = con, sql = st, progressBar = FALSE, reportOverallTime = FALSE)
         } else {
@@ -62,11 +62,18 @@ createOmopTablesOnPostgres <- function(con,
         cli::cli_inform(c(x = "Table {.pkg {nm}} could not be created because it already exists and overwrite is {.emph FALSE}."))
       }
     }
+
     if (create) {
       cols <- fields |>
         dplyr::filter(.data$cdm_table_name == .env$nm)
       fn <- formatNamePostgres(schema = cdmSchema, prefix = cdmPrefix, name = nm)
+
       st <- createStatement(name = fn, cols = cols)
+
+      if (is_duckdb) {
+        st_esc <- gsub("'", "''", st)
+        st <- sprintf("CALL postgres_execute('pg_db', '%s');", st_esc)
+      }
 
       if (is_dbc) {
         DatabaseConnector::executeSql(connection = con, sql = st, progressBar = FALSE, reportOverallTime = FALSE)

@@ -90,9 +90,7 @@ localPostgres <- function(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres")) {
       Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres")
     )
 
-    con_duck <- DBI::dbConnect(duckdb::duckdb(), dbdir = ":memory:", bigint = "integer64")
-    DBI::dbExecute(con_duck, "CREATE SCHEMA IF NOT EXISTS public;")
-    DBI::dbExecute(con_duck, "CREATE SCHEMA IF NOT EXISTS results;")
+    con_duck <- DBI::dbConnect(duckdb::duckdb(dbdir = ":memory:", bigint = "integer64"))
     DBI::dbExecute(con_duck, "INSTALL postgres;")
     DBI::dbExecute(con_duck, "LOAD postgres;")
     attach_query <- sprintf("ATTACH '%s' AS pg_db (TYPE postgres);", uri_string)

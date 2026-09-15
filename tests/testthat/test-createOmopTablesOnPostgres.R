@@ -61,11 +61,9 @@ test_that(sprintf("test you can create empty table using %s", drv), {
       sort(),
     allTables
   )
+  fn_person <- formatNamePostgres(schema = "public", prefix = "", name = "person")
   expect_true(
-    dplyr::tbl(
-      src = con,
-      I(formatNamePostgres(schema = "public", prefix = "", name = "person"))
-    ) |>
+    DBI::dbGetQuery(con, paste0("SELECT person_id FROM ", fn_person, " LIMIT 0")) |>
       dplyr::pull("person_id") |>
       bit64::is.integer64()
   )
@@ -78,11 +76,9 @@ test_that(sprintf("test you can create empty table using %s", drv), {
       sort(),
     allTables
   )
+  fn_prefix_person <- formatNamePostgres(schema = "public", prefix = prefix, name = "person")
   expect_false(
-    dplyr::tbl(
-      src = con,
-      I(formatNamePostgres(schema = "public", prefix = prefix, name = "person"))
-    ) |>
+    DBI::dbGetQuery(con, paste0("SELECT person_id FROM ", fn_prefix_person, " LIMIT 0")) |>
       dplyr::pull("person_id") |>
       bit64::is.integer64()
   )
@@ -95,11 +91,9 @@ test_that(sprintf("test you can create empty table using %s", drv), {
       sort(),
     allTables
   )
+  fn_schema_person <- formatNamePostgres(schema = schema, prefix = "", name = "person")
   expect_false(
-    dplyr::tbl(
-      src = con,
-      I(formatNamePostgres(schema = schema, prefix = "", name = "person"))
-    ) |>
+    DBI::dbGetQuery(con, paste0("SELECT person_id FROM ", fn_schema_person, " LIMIT 0")) |>
       dplyr::pull("person_id") |>
       bit64::is.integer64()
   )
