@@ -97,6 +97,7 @@ localPostgres <- function(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres")) {
     DBI::dbExecute(con_duck, "LOAD postgres;")
     attach_query <- sprintf("ATTACH '%s' AS pg_db (TYPE postgres);", uri_string)
     DBI::dbExecute(con_duck, attach_query)
+    DBI::dbExecute(con_duck, "USE pg_db;")
 
     con_duck
 
@@ -527,12 +528,24 @@ listTables <- function(src, type) {
   listTablesPostgres(con = con, schema = schema, prefix = prefix)
 }
 listTablesPostgres <- function(con, schema, prefix) {
-  if (schema == "") {
-    st <- "SELECT tablename FROM pg_tables WHERE schemaname LIKE 'pg_temp%';"
+  is_duckdb <- inherits(con, "duckdb_connection")
+
+  if (is_duckdb) {
+    if (schema == "") {
+      st <- "SELECT tablename FROM postgres_query('pg_db', 'SELECT tablename FROM pg_tables WHERE schemaname LIKE ''pg_temp%''');"
+    } else {
+      st <- paste0("SELECT tablename FROM postgres_query('pg_db', 'SELECT tablename FROM pg_tables WHERE schemaname = ''", schema, "''');")
+    }
   } else {
-    st <- paste0("SELECT tablename FROM pg_tables WHERE schemaname = '", schema, "';")
+    if (schema == "") {
+      st <- "SELECT tablename FROM pg_tables WHERE schemaname LIKE 'pg_temp%';"
+    } else {
+      st <- paste0("SELECT tablename FROM pg_tables WHERE schemaname = '", schema, "';")
+    }
   }
+
   x <- DBI::dbGetQuery(conn = con, statement = st)$tablename
+
   if (prefix != "") {
     x <- x |>
       purrr::keep(\(x) startsWith(x = x, prefix = prefix)) |>
@@ -540,8 +553,7 @@ listTablesPostgres <- function(con, schema, prefix) {
       purrr::keep(\(x) nchar(x) > 0)
   }
   return(x)
-}
-writeTable <- function(src, name, value, type) {
+}writeTable <- function(src, name, value, type) {
   vocab <- "5.4"
   # whether to log
   toLog <- logSql()
