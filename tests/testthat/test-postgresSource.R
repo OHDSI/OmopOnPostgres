@@ -2,6 +2,7 @@ for (drv in get_test_drivers()) {
 
   test_that(sprintf("check postgres source using %s", drv), {
   skip_on_cran()
+  withr::defer(resetSchemas())
 
   # local connection works
   expect_no_error(con <- localPostgres(client = drv))

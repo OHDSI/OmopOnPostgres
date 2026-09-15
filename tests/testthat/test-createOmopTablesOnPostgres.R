@@ -1,7 +1,8 @@
 for (drv in get_test_drivers()) {
 
 test_that(sprintf("test you can create empty table using %s", drv), {
-    skip_on_cran()
+  skip_on_cran()
+  withr::defer(resetSchemas())
 
   # delete tables
   deleteAllTables()

@@ -2,6 +2,7 @@ for (drv in get_test_drivers()) {
 
   test_that(sprintf("logging works using %s", drv), {
   skip_on_cran()
+  withr::defer(resetSchemas())
   expect_message(readPostgresLog())
   folder <- file.path(tempdir(), "logging")
   expect_no_error(postgresLog(path = folder, sql = T, explain = T, analyse = T))

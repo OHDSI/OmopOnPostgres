@@ -2,6 +2,7 @@ for (drv in get_test_drivers()) {
 
   test_that(sprintf("job management using %s", drv), {
   skip_on_cran()
+  withr::defer(resetSchemas())
   con <- localPostgres(client = drv)
   cdm <- omock::mockCdmFromDataset(datasetName = "GiBleed")
   pcdm <- copyCdmToPostgres(cdm = cdm, con = con, cdmPrefix = "job_c_", writePrefix = "job_w_")

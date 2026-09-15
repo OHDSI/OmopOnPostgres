@@ -2,6 +2,7 @@ for (drv in get_test_drivers()) {
 
   test_that(sprintf("copyCdmToPostgres works using %s", drv), {
     skip_on_cran()
+    withr::defer(resetSchemas())
 
     cdm <- omock::mockCdmFromDataset(datasetName = "GiBleed")
     con <- localPostgres(client = drv)
