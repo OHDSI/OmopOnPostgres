@@ -78,6 +78,28 @@ localPostgres <- function(client = Sys.getenv("TEST_PG_DRIVER", "RPostgres")) {
       pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER")
     )
 
+
+  } else if (client == "duckdb") {
+
+    uri_string <- sprintf(
+      "postgresql://%s:%s@%s:%s/%s",
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_USER", Sys.getenv("USER")),
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_PASSWORD", ""),
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_HOST", "localhost"),
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_PORT", "5432"),
+      Sys.getenv("OMOP_POSTGRES_CONNECTOR_DB", "postgres")
+    )
+
+    con_duck <- DBI::dbConnect(duckdb::duckdb(), dbdir = ":memory:")
+    DBI::dbExecute(con_duck, "CREATE SCHEMA IF NOT EXISTS public;")
+    DBI::dbExecute(con_duck, "CREATE SCHEMA IF NOT EXISTS results;")
+    DBI::dbExecute(con_duck, "INSTALL postgres;")
+    DBI::dbExecute(con_duck, "LOAD postgres;")
+    attach_query <- sprintf("ATTACH '%s' AS pg_db (TYPE postgres);", uri_string)
+    DBI::dbExecute(con_duck, attach_query)
+
+    con_duck
+
   } else {
     cli::cli_abort("{client} not supported")
   }
@@ -593,7 +615,6 @@ writeTable <- function(src, name, value, type) {
     if (DBI::dbExistsTable(con, idn)) {
       DBI::dbRemoveTable(con, idn)
     }
-
     DBI::dbCreateTable(
       conn = con,
       name = idn,
@@ -669,12 +690,14 @@ IdName <- function(src, name, type) {
   }
 }
 validateCon <- function(con, call = parent.frame()) {
+
   allowed_classes <- c(
     "PqConnection",
     "AdbiConnection",
     "PostgreSQL",
     "DatabaseConnectorConnection",
-    "DatabaseConnectorDbiConnection"
+    "DatabaseConnectorDbiConnection",
+    "duckdb_connection"
   )
 
   if (!inherits(con, allowed_classes)) {

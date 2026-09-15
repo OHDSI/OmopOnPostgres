@@ -40,11 +40,11 @@ Suggests:
     CDMConnector,
     OmopSketch,
     flextable,
-    DBI,
     sessioninfo,
     ps,
     benchmarkme,
-    scales
+    scales,
+    duckdb
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends: 

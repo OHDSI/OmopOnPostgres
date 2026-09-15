@@ -63,6 +63,22 @@ getJobs.PostgreSQL <- getJobs.PqConnection
 #' @export
 getJobs.DatabaseConnectorJdbcConnection <- getJobs.PqConnection
 
+#' @export
+getJobs.duckdb_connection <- function(src, user = NULL) {
+  omopgenerics::assertCharacter(user, null = TRUE)
+
+  sql_query <- dplyr::sql("SELECT * FROM postgres_query('pg_db', 'SELECT * FROM pg_stat_activity')")
+
+  x <- dplyr::tbl(src, sql_query)
+
+  if (!is.null(user)) {
+    x <- x |>
+      dplyr::filter(.data$usename %in% .env$user)
+  }
+
+  dplyr::collect(x)
+}
+
 #' Cancel a Postgres job.
 #'
 #' @param src It can either be a cdm_reference, a postgres_source or a
@@ -118,6 +134,30 @@ cancelJob.PostgreSQL <- cancelJob.PqConnection
 #' @export
 cancelJob.DatabaseConnectorJdbcConnection <- cancelJob.PqConnection
 
+#' @export
+cancelJob.duckdb_connection <- function(src, pid) {
+  omopgenerics::assertNumeric(pid, integerish = TRUE)
+  pids <- unique(pid)
+
+  active_pids_query <- "SELECT pid FROM postgres_query('pg_db', 'SELECT pid FROM pg_stat_activity')"
+  active_pids <- DBI::dbGetQuery(src, active_pids_query)$pid
+
+  valid_pids <- intersect(pids, active_pids)
+  invalid_pids <- setdiff(pids, active_pids)
+
+  if (length(invalid_pids) > 0) {
+    cli::cli_inform("The following PIDs are not active and will be skipped: {.pkg {invalid_pids}}")
+  }
+
+  for (p in valid_pids) {
+    cli::cli_inform(c(i = "Cancelling job with `pid = {.pkg {p}}`."))
+    # Push the cancel command down to Postgres
+    statement <- paste0("SELECT * FROM postgres_query('pg_db', 'SELECT pg_cancel_backend(", p, ")')")
+    DBI::dbExecute(conn = src, statement = statement)
+  }
+
+  invisible(TRUE)
+}
 
 
 #' Get tables created by a user in a schema.
@@ -173,3 +213,26 @@ getUserTables.OdbcConnection <- getUserTables.PqConnection
 
 #' @export
 getUserTables.DatabaseConnectorJdbcConnection <- getUserTables.PqConnection
+
+#' @export
+#' @export
+getUserTables.duckdb_connection <- function(src, schema = "public", user = NULL) {
+  omopgenerics::assertCharacter(schema, length = 1)
+  omopgenerics::assertCharacter(user, null = TRUE)
+
+  rlang::local_options(nanoarrow.warn_unregistered_extension = FALSE)
+
+  # Pass-through to pg_tables inside Postgres
+  sql_query <- dplyr::sql("SELECT * FROM postgres_query('pg_db', 'SELECT * FROM pg_tables')")
+
+  x <- dplyr::tbl(src, sql_query) |>
+    dplyr::filter(.data$schemaname == .env$schema)
+
+  if (!is.null(user)) {
+    x <- x |>
+      dplyr::filter(.data$tableowner %in% .env$user)
+  }
+
+  dplyr::collect(x) |>
+    dplyr::pull("tablename")
+}
