@@ -611,6 +611,8 @@ writeTable <- function(src, name, value, type) {
   colTypes[toupper(colTypes) %in% problem_types] <- "DOUBLE PRECISION"
 
   is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
+  is_duckdb <- inherits(con, "duckdb_connection")
+
   if (is_dbc) {
     DatabaseConnector::executeSql(
       connection = con,
@@ -640,10 +642,28 @@ writeTable <- function(src, name, value, type) {
         camelCaseToSnakeCase = FALSE
       )
     }
+  } else if (is_duckdb) {
+    DBI::dbExecute(con, paste0("DROP TABLE IF EXISTS ", fn, ";"))
+
+    quoted_cols <- paste0('"', names(colTypes), '"')
+    col_defs <- paste(quoted_cols, colTypes, collapse = ", ")
+    temp_kw <- if (type == "temp") "TEMP " else ""
+
+    create_sql <- sprintf("CREATE %sTABLE %s (%s);", temp_kw, fn, col_defs)
+    DBI::dbExecute(con, create_sql)
+
+    if (nrow(value) > 0) {
+      temp_view_name <- paste0("temp_df_", paste(sample(letters, 10, replace = TRUE), collapse = ""))
+      duckdb::duckdb_register(conn = con, name = temp_view_name, df = as.data.frame(value))
+      insert_sql <- paste0("INSERT INTO ", fn, " SELECT * FROM ", temp_view_name, ";")
+      DBI::dbExecute(con, insert_sql)
+      duckdb::duckdb_unregister(conn = con, name = temp_view_name)
+    }
   } else {
     if (DBI::dbExistsTable(con, idn)) {
       DBI::dbRemoveTable(con, idn)
     }
+
     DBI::dbCreateTable(
       conn = con,
       name = idn,
@@ -655,7 +675,7 @@ writeTable <- function(src, name, value, type) {
       DBI::dbAppendTable(
         conn = con,
         name = idn,
-        value = value
+        value = as.data.frame(value)
       )
     }
   }
