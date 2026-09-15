@@ -43,7 +43,8 @@ Suggests:
     DBI,
     sessioninfo,
     ps,
-    benchmarkme
+    benchmarkme,
+    scales
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends: 

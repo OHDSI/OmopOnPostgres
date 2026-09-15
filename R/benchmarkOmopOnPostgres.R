@@ -10,6 +10,7 @@
 benchmarkOmopOnPostgres <- function(cdm, n_iterations = 1){
 
   rlang::check_installed("tictoc")
+  rlang::check_installed("scales")
   tictoc::tic.clearlog()
 
   omopgenerics::validateCdmArgument(cdm = cdm)
