@@ -62,3 +62,12 @@ reference:
     desc: "Assess time to collect from and insert data into a postgres cdm reference"
     contents:
       - benchmarkOmopOnPostgres
+
+  - title: "DuckDb utilities"
+    desc: "Utilities to support working with DuckDb and Postgres"
+    contents:
+      - attachPgDb
+      - duckdbHasPgDbAttached
+      - duckdbUsePgDb
+      - duckdbUseDuckDb
+      - duckdbIsUsingPgDb

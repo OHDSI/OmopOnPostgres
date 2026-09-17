@@ -46,9 +46,6 @@ createSchema <- function(con, schema) {
   invisible(schema)
 }
 
-#' Reset Postgres schemas to a completely blank state
-#'
-#' @export
 resetSchemas <- function() {
   con <- localPostgres()
   is_dbc <- inherits(con, "DatabaseConnectorConnection") || inherits(con, "DatabaseConnectorDbiConnection")
