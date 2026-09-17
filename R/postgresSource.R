@@ -771,7 +771,11 @@ validateSchema <- function(con, schema, null, call = parent.frame()) {
     }
   } else {
     if (!schemaExists(con, schema)) {
-      if (question("Schema {.pkg {schema}} does not exist. Do you want to create it? Y/n")) {
+      # Auto-create schema in CI / non-interactive environments
+      if (!interactive()) {
+        cli::cli_inform(c("i" = "Non-interactive session: automatically creating schema {.pkg {schema}}."))
+        createSchema(con, schema)
+      } else if (question(sprintf("Schema %s does not exist. Do you want to create it? Y/n", schema))) {
         cli::cli_inform(c("i" = "Creating schema: {.pkg {schema}}."))
         createSchema(con, schema)
       } else {

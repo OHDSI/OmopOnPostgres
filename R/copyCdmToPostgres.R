@@ -33,7 +33,7 @@ copyCdmToPostgres <- function(cdm,
   cdmPrefix <- validatePrefix(prefix = cdmPrefix)
   nullWrite <- length(c(tables$cohort_tables, tables$other_tables)) == 0
   writeSchema <- validateSchema(con = con, schema = writeSchema, null = nullWrite)
-  writeSchema <- validatePrefix(prefix = writeSchema)
+  writePrefix <- validatePrefix(prefix = writePrefix)
   nullAch <- length(tables$achilles_tables) == 0
   achillesSchema <- validateSchema(con = con, schema = achillesSchema, null = nullAch)
   achillesPrefix <- validatePrefix(prefix = achillesPrefix)
