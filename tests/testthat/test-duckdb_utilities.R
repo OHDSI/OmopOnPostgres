@@ -21,7 +21,7 @@ test_that("duckdb utilities", {
 
     # create connection (has pg attached)
     con <- localPostgres(client = drv)
-    withr::defer(DBI::dbDisconnect(conn = con))
+    withr::defer(DBI::dbDisconnect(con = con))
     expect_true(duckdbHasPgDbAttached(con))
     expect_true(duckdbIsUsingPgDb(con))
     expect_no_error(duckdbUsePgDb(con))
