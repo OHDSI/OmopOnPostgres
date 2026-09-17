@@ -150,6 +150,21 @@ reference
 - [`benchmarkOmopOnPostgres()`](https://ohdsi.github.io/OmopOnPostgres/reference/benchmarkOmopOnPostgres.md)
   : Benchmark OMOP on Postgres
 
+## DuckDb utilities
+
+Utilities to support working with DuckDb and Postgres
+
+- [`attachPgDb()`](https://ohdsi.github.io/OmopOnPostgres/reference/attachPgDb.md)
+  : Attach a postres database to a duckdb database
+- [`duckdbHasPgDbAttached()`](https://ohdsi.github.io/OmopOnPostgres/reference/duckdbHasPgDbAttached.md)
+  : Check if a PostgreSQL database is attached to DuckDB
+- [`duckdbUsePgDb()`](https://ohdsi.github.io/OmopOnPostgres/reference/duckdbUsePgDb.md)
+  : Ensure duckdb is using Postgres as default catalog
+- [`duckdbUseDuckDb()`](https://ohdsi.github.io/OmopOnPostgres/reference/duckdbUseDuckDb.md)
+  : Ensure duckdb is using the native DuckDB catalog
+- [`duckdbIsUsingPgDb()`](https://ohdsi.github.io/OmopOnPostgres/reference/duckdbIsUsingPgDb.md)
+  : Check if duckdb is using Postgres as default catalog
+
 # Articles
 
 ### All vignettes
