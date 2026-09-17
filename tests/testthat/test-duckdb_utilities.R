@@ -1,5 +1,5 @@
 drv <- get_test_drivers()[get_test_drivers() == "duckdb"]
-# if(get_test_drivers() == "duckdb"){
+if(get_test_drivers() == "duckdb"){
 test_that("duckdb utilities", {
     skip_on_cran()
 
@@ -32,7 +32,5 @@ test_that("duckdb utilities", {
 
   })
 
-
-
-# }
+}
 
